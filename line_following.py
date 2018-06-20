@@ -2,7 +2,7 @@ import time
 import cv2
 import numpy as np
 
-camera = cv2.VideoCapture(1)
+camera = cv2.VideoCapture(0)
 
 time.sleep(0.1)
 
