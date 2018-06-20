@@ -20,6 +20,7 @@ A step by step series of examples that tell you how to get a development env run
 
 Say what the step will be
 
+1) sudo install pip pyserial
 ```
 Give the example
 ```
@@ -82,4 +83,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 * Hat tip to anyone whose code was used
 * Inspiration
-* etc
