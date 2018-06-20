@@ -1,4 +1,3 @@
-Yvan kablan  git hub test
 # smart_city_mdx
 Project aims to develop a system which, using different ways of sensing will receive information about an environment and will be able to use it to control cars and other elements of this city. 
 
@@ -21,6 +20,7 @@ A step by step series of examples that tell you how to get a development env run
 
 Say what the step will be
 
+1) sudo install pip pyserial
 ```
 Give the example
 ```
@@ -83,4 +83,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 * Hat tip to anyone whose code was used
 * Inspiration
-* etc
