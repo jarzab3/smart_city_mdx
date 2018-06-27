@@ -21,7 +21,7 @@ class SerialConnection:
         self.ser.open()
         # Toggle DTR to reset Arduino
         self.ser.setDTR(False)
-        sleep(0.3)
+        sleep(1)
         # Toss any data already received
         self.ser.flushInput()
         self.ser.setDTR(True)
@@ -50,8 +50,13 @@ class SerialConnection:
                 try:
                     self.serBuffer = self.ser.readline()
                     sleep(0.01)
-                except (OSError, serial.SerialException):
-                    print("Serial connection problem")
+                except (OSError, serial.SerialException) as error:
+                    print("Serial connection problem. %s" % error)
+
+                # except KeyboardInterrupt:
+                #     print ("KeyboardInterrupt")
+                #     self.close()
+                    # print("Closing serial port: %s" % self.ser.port)
 
     def get_buffer(self):
         while True:

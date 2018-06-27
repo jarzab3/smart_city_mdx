@@ -2,7 +2,8 @@
 from serialConnector import SerialConnection
 import asip
 import threading
-
+from Services import *
+from time import sleep
 
 class AsipManager:
     def __init__(self):
@@ -62,16 +63,6 @@ class Motor:
 def stopMotors(self):
     self.m0.set(0)
     self.m1.set(0)
-
-
-class Encoder:
-    def __init__(self, name, svcId):
-        self.name = name
-        self.svcId = svcId
-
-    def request(self, time_interval):
-        sendRequest(self.svcId, time_interval)
-
 
 class Service:
     def request(self):
@@ -139,28 +130,30 @@ def evtDispatcher(id, values):
             reflectance.fieldVars[index].set(f)
             print('Reflectance')
 
+def event_dispatcher(asipManger):
+    while True:
+        print(asipManger.conn.get_buffer())
+        sleep(0.3)
+
 def main():
     am = AsipManager()
-    main_thread = threading.Thread(name='Teensy talker', target=am.conn.receive_data)
-    get_buffer = threading.Thread(name='Get buffer', target=am.conn.get_buffer)
-    main_thread.start()
-    get_buffer.start()
+    import time
+    # Set up threads
+    try:
+        main_thread = threading.Thread(name='Teensy talker', target=am.conn.receive_data)
+        main_thread.deamon = True
+        main_thread.start()
+        get_buffer = threading.Thread(name='Get buffer', target=event_dispatcher, args=(am,))
+        get_buffer.daemon = True
+        get_buffer.start()
+        while True: time.sleep(100)
+    except (KeyboardInterrupt, SystemExit):
+        print('\n! Received keyboard interrupt, quitting threads.\n')
 
-# root.title("ASIP Mirto Tester")
-# serialConnector.init(msgDispatcher)
-# root.after(100, serialConnector.poll) # serial polling routine
-# root.mainloop()
-# t = threading.Thread(target=worker, args=(i,))
-# main_thread = threading.Thread(name='Teensy talker', target=serialConnector.poll)
-# main_thread.start()
-# serialConnector.poll()
+    # e = Encoder("Right encoder", asip.id_ENCODER_SERVICE, True)
 
 
-# global root
-# root = Tk()
-global isReady
-isReady = False
-# commsUI = SerialUI(root, 'Serial Port')
+
 
 # motors = Motor(root,'Motor Control', ('Left', 'Right'))
 # encoders = Encoder(root,'Encoders',asip.id_ENCODER_SERVICE, ('Left', 'Right'))
