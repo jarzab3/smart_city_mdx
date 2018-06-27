@@ -31,7 +31,6 @@ class SerialMirtoRobot(SerialBoard):
         self._bumps[0].set_reporting_interval(reporting_interval)
         self._bumps[1].set_reporting_interval(reporting_interval)
         sys.stdout.write("DEBUG: reporting interval set to {}\n".format(reporting_interval))
-
         #  Adding services
         self.get_asip_client().add_service(self._motors[0].get_service_id(), self._motors)
         self.get_asip_client().add_service(self._encoders[0].get_service_id(), self._encoders)

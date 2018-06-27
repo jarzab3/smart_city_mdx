@@ -42,6 +42,7 @@ class SerialBoard:
             self.open_serial(self.__ports[self.__PORT_INDEX_TO_OPEN], self.__BAUD_RATE)
             sys.stdout.write("Setting Serial: serial port {} opened\n".format(self.__ports[self.__PORT_INDEX_TO_OPEN]))
             self.asip = AsipClient(self.SimpleWriter(self.__ser_conn, self.DEBUG))
+
         except serial.SerialException as e:
             sys.stdout.write("Exception while init serial connection: {}\n".format(e))
             sys.exit(1)

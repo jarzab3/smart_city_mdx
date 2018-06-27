@@ -32,6 +32,7 @@ def read_all_ir_values():
 
     return values
 
+# robot.test()
 
 while True:
     values = read_all_ir_values()

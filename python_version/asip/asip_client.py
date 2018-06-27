@@ -75,7 +75,6 @@ class AsipClient:
 
     #  A constructor taking the writer as parameter.
     def __init__(self, w=None):
-
         # Ports, pins, and services initialization
         # self.__pin_mode = [None]*(self.MAX_NUM_DIGITAL_PINS + self.MAX_NUM_ANALOG_PINS)
         self.__services = {}
@@ -209,7 +208,7 @@ class AsipClient:
 
     # A method to do what is says on the tin...
     def __handle_input_event(self, input_str):   
-        #print("mm: received message {}\n".format(input_str))    
+        # print("mm: received message {}\n".format(input_str))
         if self.DEBUG:
             sys.stdout.write("DEBUG: received message {}\n".format(input_str))
 
