@@ -1,5 +1,8 @@
 from asip_manager import AsipManager
 from time import sleep
+from settings import logging as log
+import time
+
 
 class MirtoRobot:
     def __init__(self):
@@ -34,20 +37,22 @@ class MirtoRobot:
         motor_2 = self.robot.all_services.get('motor_2')
         motor_1.set_motor(speed0)
         motor_2.set_motor(speed1)
-        print("DEBUG: setting motors speed to: {}, {}".format(speed0, speed1))
+        log.info("DEBUG: setting motors speed to: {}, {}".format(speed0, speed1))
 
     def stop_motors(self):
         motor_1 = self.robot.all_services.get('motor_1')
+        motor_2 = self.robot.all_services.get('motor_1')
         motor_1.stop_motor()
+        motor_2.stop_motor()
 
-    def test(self):
-        try:
-            while True:
-                print(self.get_left_encoder_values(), self.get_right_encoder_values())
-                sleep(0.1)
-        except KeyboardInterrupt:
+    def test_encoders(self, interval=0.1, time_to_finish=10):
+        end_time = time.time() + time_to_finish
+        while time.time() < end_time:
+            print(self.get_left_encoder_values(), self.get_right_encoder_values())
+            sleep(interval)
+        else:
             self.robot.terminate_all()
-            print ("Finish test")
+            log.info("Finish encoder test")
 
     def motor_test(self):
         self.set_motors(90, 30)
@@ -56,7 +61,8 @@ class MirtoRobot:
 
 if __name__ == '__main__':
     mirto = MirtoRobot()
-    # mirto.test()
+    mirto.test_encoders()
     mirto.motor_test()
+    # This will stop all threads and close ports
     mirto.terminate()
 

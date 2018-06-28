@@ -5,6 +5,7 @@ import threading
 from services import *
 from time import sleep
 import time
+from settings import logging as log
 
 
 class AsipManager:
@@ -18,10 +19,10 @@ class AsipManager:
         self.all_services = {}
         self.all_threads = []
         if self.debug:
-            print("Available ports: {}".format(self.ports))
+            log.debug("Available ports: {}".format(self.ports))
         if not self.isReady:
             self.open_serial()
-        print("Serial port: %s opened successfully" % self.selected_port)
+        log.info("Serial port: %s opened successfully" % self.selected_port)
 
     def on_open(self):
         if self.conn.is_open():
@@ -33,47 +34,48 @@ class AsipManager:
         baud_rate = 57600
         my_port = self.selected_port
         self.conn.open(my_port, baud_rate)
+        if self.debug:
+            log.debug("Open serial port. %s" % self.conn)
         if self.conn.is_open():
             if self.conn.send(asip.INFO_REQUEST.encode()):
                 self.isReady = True
         else:
-            print("Failed to open serial port")
+            log.error("Failed to open serial port")
 
     def close_serial(self):
         self.conn.close()
         self.isReady = False
+        log.info("Closing serial port %s" % self.selected_port)
 
     def send_request(self, svcID, value):
         if self.isReady:
             request_string = str(svcID + ',' + asip.tag_AUTOEVENT_REQUEST + ',' + str(value) + '\n').encode()
             if self.debug:
-                print("Request for svc %s msg: %s" % (svcID, request_string))
+                log.debug("Request for svc %s msg: %s" % (svcID, request_string))
             successfully_sent_message = self.conn.send(request_string)
             if not successfully_sent_message:
                 self.closePort()  # send failed so close port
         else:
-            print('Serial port is not connected')
+            log.error('Serial port is not connected')
 
     def msg_dispatcher(self, msg):
-        # print (msg)
         if len(msg) > 0:
             msg_head = msg[0]
         else:
-            print(msg)
             msg_head = ""
-            sleep(1)
+            self.terminate_all(False)
+            log.error("Problem with with message dispatching")
 
-        # print (msg[1])
         if msg_head == asip.EVENT_HEADER:
-            print (msg[1])
+            # print(msg[1])
             if msg[1] == asip.SYSTEM_MSG_HEADER:
                 print(msg[5:-1])
             else:
                 self.event_dispatcher(msg)
         elif msg_head == asip.DEBUG_MSG_HEADER:
-            print(msg[1:])
+            log.error(msg[1:])
         elif msg_head == asip.ERROR_MSG_HEADER:
-            print('Err: ' + msg[1:])
+            log.error('Err: ' + msg[1:])
 
     def event_dispatcher(self, msg):
         id = msg[1]
@@ -111,7 +113,8 @@ class AsipManager:
     def initialize_main(self):
         self.run_event = threading.Event()
         self.run_event.set()
-        main_thread = threading.Thread(name='Teensy msgs receiver', target=self.conn.receive_data, args=(self.run_event,))
+        main_thread = threading.Thread(name='Teensy msgs receiver', target=self.conn.receive_data,
+                                       args=(self.run_event,))
         run_services_thread = threading.Thread(name='Services process', target=self.run_services,
                                                args=(self.run_event,))
         # Init all services
@@ -119,16 +122,20 @@ class AsipManager:
         self.all_threads = [main_thread, run_services_thread]
         # Start all threads
         for thread in self.all_threads:
-            thread.start()
-            time.sleep(.5)
-            print("Thread: %s set up successfully" % thread.getName())
+            try:
+                thread.start()
+                time.sleep(.5)
+                log.info("Thread: %s set up successfully" % thread.getName())
+            except Exception as error:
+                log.error("Could not create a thread %s" % error)
 
-    def terminate_all(self):
+    def terminate_all(self, thread_stop=True):
         self.run_event.clear()
-        for thread in self.all_threads:
-            thread.join()
-            print("Thread run status: {}: {}".format(thread.getName(), str(thread.is_alive())))
-
+        if thread_stop:
+            for thread in self.all_threads:
+                if thread.is_alive():
+                    thread.join()
+                    log.info("Thread run status: {}: {}".format(thread.getName(), str(thread.is_alive())))
         self.close_serial()
 
 # motors = Motor(root,'Motor Control', ('Left', 'Right'))
