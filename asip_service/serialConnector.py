@@ -12,12 +12,12 @@ class SerialConnection:
         self.ser.timeout = 0  # Ensure non-blocking
         self.ser.writeTimeout = 0  # Ensure non-blocking
 
-    def open(self, port, baud):
+    def open(self, port, baud, timeout):
         if self.ser.isOpen():
             self.ser.close()
         self.ser.port = port
         self.ser.baudrate = baud
-        self.ser.timeout = 0.1
+        self.ser.timeout = timeout
         self.ser.open()
         # Toggle DTR to reset Arduino
         self.ser.setDTR(False)

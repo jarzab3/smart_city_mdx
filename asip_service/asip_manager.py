@@ -33,7 +33,8 @@ class AsipManager:
     def open_serial(self):
         baud_rate = 57600
         my_port = self.selected_port
-        self.conn.open(my_port, baud_rate)
+        timeout = 0.7
+        self.conn.open(my_port, baud_rate, timeout)
         if self.debug:
             log.debug("Open serial port. %s" % self.conn)
         if self.conn.is_open():
@@ -51,7 +52,7 @@ class AsipManager:
         if self.isReady:
             request_string = str(svcID + ',' + asip.tag_AUTOEVENT_REQUEST + ',' + str(value) + '\n').encode()
             if self.debug:
-                log.debug("Request for svc %s msg: %s" % (svcID, request_string))
+                log.debug("Request for svc %s msg: %s" % (svcID, request_string.decode().strip('\n')))
             successfully_sent_message = self.conn.send(request_string)
             if not successfully_sent_message:
                 self.closePort()  # send failed so close port
@@ -62,10 +63,10 @@ class AsipManager:
         if len(msg) > 0:
             msg_head = msg[0]
         else:
+            # TODO Fix problem with incorrect message type
             msg_head = ""
             self.terminate_all(False)
             log.error("Problem with with message dispatching")
-
         if msg_head == asip.EVENT_HEADER:
             # print(msg[1])
             if msg[1] == asip.SYSTEM_MSG_HEADER:
@@ -73,6 +74,7 @@ class AsipManager:
             else:
                 self.event_dispatcher(msg)
         elif msg_head == asip.DEBUG_MSG_HEADER:
+            print (msg)
             log.error(msg[1:])
         elif msg_head == asip.ERROR_MSG_HEADER:
             log.error('Err: ' + msg[1:])
@@ -91,26 +93,27 @@ class AsipManager:
     def run_services(self, run_event):
         while run_event.is_set():
             received_message = self.conn.get_buffer()
+            # print (received_message)
             self.msg_dispatcher(received_message)
-            sleep(0.001)
+            sleep(0.2)
 
-    def initialize_services(self):
+    def initialize_services(self) -> None:
         """
         :return:
         """
         # Add encoders service
-        encoders = Encoders(name="Encoders", svcID=asip.id_ENCODER_SERVICE, debug=False)
+        encoders = Encoders(name="Encoders", svc_id=asip.id_ENCODER_SERVICE, debug=False)
         # Enable all encoders by writing value 1, if you wish to disable you can do it by writing 0
-        self.send_request(encoders.svcID, 1)
+        self.send_request(encoders.svc_id, 1)
         self.all_services.update({'encoders': encoders})
 
         # Add motors service
-        motor_1 = Motor(name="Left Motor", svcID=asip.tag_SET_MOTOR, id=0, conn=self.conn, debug=True)
-        motor_2 = Motor(name="Left Motor", svcID=asip.tag_SET_MOTOR, id=1, conn=self.conn, debug=True)
+        motor_1 = Motor(name="Left Motor", svc_id=asip.tag_SET_MOTOR, motor_id=0, conn=self.conn, debug=False)
+        motor_2 = Motor(name="Right Motor", svc_id=asip.tag_SET_MOTOR, motor_id=1, conn=self.conn, debug=False)
         self.all_services.update({'motor_1': motor_1})
         self.all_services.update({'motor_2': motor_2})
 
-    def initialize_main(self):
+    def initialize_main(self) -> None:
         self.run_event = threading.Event()
         self.run_event.set()
         main_thread = threading.Thread(name='Teensy msgs receiver', target=self.conn.receive_data,
@@ -124,12 +127,12 @@ class AsipManager:
         for thread in self.all_threads:
             try:
                 thread.start()
-                time.sleep(.5)
+                time.sleep(1)
                 log.info("Thread: %s set up successfully" % thread.getName())
             except Exception as error:
                 log.error("Could not create a thread %s" % error)
 
-    def terminate_all(self, thread_stop=True):
+    def terminate_all(self, thread_stop=True) -> None:
         self.run_event.clear()
         if thread_stop:
             for thread in self.all_threads:
