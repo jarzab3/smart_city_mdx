@@ -8,7 +8,7 @@ class SerialConnection:
     def __init__(self):
         self.ser = serial.Serial()
         # make our own buffer
-        self.serBuffer = ''
+        self.serBuffer = b''
         self.ser.timeout = 0  # Ensure non-blocking
         self.ser.writeTimeout = 0  # Ensure non-blocking
 
@@ -41,28 +41,20 @@ class SerialConnection:
                 pass
         return False
 
-    def receive_data(self):
+    def receive_data(self, run_event):
         if not self.ser.isOpen():
             print ("Connection dropped, please check self.serial.")
 
         else:
-            while True:
+            while run_event.is_set():
                 try:
                     self.serBuffer = self.ser.readline()
                     sleep(0.01)
                 except (OSError, serial.SerialException) as error:
                     print("Serial connection problem. %s" % error)
 
-                # except KeyboardInterrupt:
-                #     print ("KeyboardInterrupt")
-                #     self.close()
-                    # print("Closing serial port: %s" % self.ser.port)
-
     def get_buffer(self):
-        while True:
-            print(self.serBuffer)
-            sleep(0.5)
-        # return self.serBuffer
+        return self.serBuffer.decode('utf-8')
 
     def list_available_ports(self):
         """Lists self.serial ports

@@ -1,168 +1,62 @@
-#!/usr/bin/python
-from serialConnector import SerialConnection
-import asip
-import threading
-from Services import *
+from asip_manager import AsipManager
 from time import sleep
 
-class AsipManager:
+class MirtoRobot:
     def __init__(self):
-        self.isReady = False
-        self.conn = SerialConnection()
-        self.ports = self.conn.list_available_ports()
-        self.selected_port = self.ports[0]
-        self.debug = True
-        if self.debug:
-            print("Available ports: {}".format(self.ports))
-        if not self.isReady:
-            self.open_serial()
+        self.robot = AsipManager()
+        self.robot.initialize_main()
 
-    def on_open(self):
-        if self.conn.is_open():
-            self.close_serial()
+    def terminate(self):
+        self.robot.terminate_all()
+
+    def get_left_encoder_values(self, delta=False):
+        # Access encoders service
+        encoders = self.robot.all_services.get('encoders')
+        # Get values
+        left_values_all = encoders.left_values
+        if delta:
+            return left_values_all
         else:
-            self.open_serial()
+            return left_values_all[1]
 
-    def open_serial(self):
-        baud_rate = 57600
-        my_port = self.selected_port
-        self.conn.open(my_port, baud_rate)
-        if self.conn.is_open():
-            if self.conn.send(asip.INFO_REQUEST.encode()):
-                self.isReady = True
+    def get_right_encoder_values(self, delta=False):
+        # Access encoders service
+        encoders = self.robot.all_services.get('encoders')
+        # Get values
+        right_values_all = encoders.right_values
+        if delta:
+            return right_values_all
         else:
-            print("Failed to open serial port")
-            # logMsg('Failed to open serial port')
+            return right_values_all[1]
 
-    def close_serial(self):
-        self.conn.close()
-        self.isReady = False
+    def set_motors(self, speed0, speed1):
+        motor_1 = self.robot.all_services.get('motor_1')
+        motor_2 = self.robot.all_services.get('motor_2')
+        motor_1.set_motor(speed0)
+        motor_2.set_motor(speed1)
+        print("DEBUG: setting motors speed to: {}, {}".format(speed0, speed1))
 
+    def stop_motors(self):
+        motor_1 = self.robot.all_services.get('motor_1')
+        motor_1.stop_motor()
 
-class Motor:
+    def test(self):
+        try:
+            while True:
+                print(self.get_left_encoder_values(), self.get_right_encoder_values())
+                sleep(0.1)
+        except KeyboardInterrupt:
+            self.robot.terminate_all()
+            print ("Finish test")
 
-    def __init__(self):
-        pass
+    def motor_test(self):
+        self.set_motors(90, 30)
+        sleep(5)
+        self.stop_motors()
 
-    def onChangeM0(self, value):
-        self.onChangeMotor('0', value)
+if __name__ == '__main__':
+    mirto = MirtoRobot()
+    # mirto.test()
+    mirto.motor_test()
+    mirto.terminate()
 
-    def onChangeM1(self, value):
-        self.onChangeMotor('1', value)
-
-    def onChangeMotor(self, motor, value):
-        global isReady
-        if isReady:
-            print('Motor ' + motor + ' value= ' + value)
-            if serialConnector.send('M,m,' + motor + ',' + value + '\n') == False:
-                commsUI.closePort()  # send failed so close port
-        else:
-            print('Not ready')
-
-
-def stopMotors(self):
-    self.m0.set(0)
-    self.m1.set(0)
-
-class Service:
-    def request(self):
-        t = self.entReq.get()
-        sendRequest(self.svcId, t)
-
-
-class Log:
-    def insert(self, msg):
-        self.log.insert(0, msg)
-
-
-def sendRequest(svcId, value):
-    if isReady:
-        print('Request for svc ' + svcId + ': ' + str(value))
-
-        request_string = str(svcId + ',' + asip.tag_AUTOEVENT_REQUEST + ',' + str(value) + '\n').encode()
-
-        print (request_string)
-
-        successfully_sent_message = serialConnector.send(request_string)
-
-        if not successfully_sent_message:
-            commsUI.closePort()  # send failed so close port
-    else:
-        print('Serial port is not connected')
-
-def logMsg(msg):
-    print(msg)
-    log.insert(msg)
-
-
-def msgDispatcher(msg):
-    # logMsg(msg)
-    if msg[0] == asip.EVENT_HEADER:
-        if msg[1] == asip.SYSTEM_MSG_HEADER:
-            showInfo(msg[5:-1])
-        else:
-            evtDispatcher(msg[1], msg[8:-2])
-    elif msg[0] == asip.DEBUG_MSG_HEADER:
-        logMsg(msg[1:])
-    elif msg[0] == asip.ERROR_MSG_HEADER:
-        logMsg('Err: ' + msg[1:])
-
-
-def showInfo(msg):
-    info = msg.split(',')
-    msg = 'ASIP version %s.%s running on %s using sketch: %s' % (info[0], info[1], info[2], info[4])
-    logMsg(msg)
-
-
-def evtDispatcher(id, values):
-    # print values
-    fields = values.split(',')
-    for index, f in enumerate(fields):
-        if id == asip.id_ENCODER_SERVICE:
-            subField = f.split(':')
-            encoders.fieldVars[index][0].set(subField[0])
-            encoders.fieldVars[index][1].set(subField[1])
-            print('Encoder')
-        elif id == asip.id_BUMP_SERVICE:
-            bump.fieldVars[index].set(f)
-            print('Bump')
-        elif id == asip.id_IR_REFLECTANCE_SERVICE:
-            reflectance.fieldVars[index].set(f)
-            print('Reflectance')
-
-def event_dispatcher(asipManger):
-    while True:
-        print(asipManger.conn.get_buffer())
-        sleep(0.3)
-
-def main():
-    am = AsipManager()
-    import time
-    # Set up threads
-    try:
-        main_thread = threading.Thread(name='Teensy talker', target=am.conn.receive_data)
-        main_thread.deamon = True
-        main_thread.start()
-        get_buffer = threading.Thread(name='Get buffer', target=event_dispatcher, args=(am,))
-        get_buffer.daemon = True
-        get_buffer.start()
-        while True: time.sleep(100)
-    except (KeyboardInterrupt, SystemExit):
-        print('\n! Received keyboard interrupt, quitting threads.\n')
-
-    # e = Encoder("Right encoder", asip.id_ENCODER_SERVICE, True)
-
-
-
-
-# motors = Motor(root,'Motor Control', ('Left', 'Right'))
-# encoders = Encoder(root,'Encoders',asip.id_ENCODER_SERVICE, ('Left', 'Right'))
-# bump = Service(root,'Bump Sensors',asip.id_BUMP_SERVICE, ('Left', 'Right'))
-# reflectance = Service(root,'Reflectance Sensors',asip.id_IR_REFLECTANCE_SERVICE,('Left', 'Center','Right'))
-
-# Distance = Service(root,'Distance Sensor',('distance',))
-
-# log = Log(root)
-
-# if __name__ == '__main__':
-    # main()

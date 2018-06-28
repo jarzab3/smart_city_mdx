@@ -1,7 +1,4 @@
 # asip.py -   Arduino Services Interface Protocol (ASIP) V1.1
-# 
-
-#class ASIP(object):
 
 # System messages
 # Request messages to Arduino
@@ -10,7 +7,6 @@ tag_SYSTEM_GET_INFO = '?'  # Get version and hardware info
 tag_SERVICES_NAMES = 'N'  # get list of friendly service names
 tag_PIN_SERVICES_LIST = 'S'  # gets a list of pins indicating registered service
 tag_RESTART_REQUEST = 'R'  # disables all autoevents and attempts to restart all services
-
 
 # messages from Arduino
 EVENT_HEADER = '@'  # event messages are preceded with this tag
@@ -29,7 +25,6 @@ MIN_MSG_LEN = 4  # valid request messages must be at least this many characters
 NO_EVENT = '\0'  # tag to indicate the a service does not produce an event
 MSG_TERMINATOR = '\n'
 
-#class Mirto(object):
 # Motor service
 id_MOTOR_SERVICE = 'M'
 # Motor methods (messages to Arduino)
@@ -43,24 +38,20 @@ tag_STOP_MOTOR = 's'
 tag_STOP_MOTORS = 'S'
 tag_RESET_ENCODERS = 'E'  # rest total counts to zero
 
-
 # Encoder service
 id_ENCODER_SERVICE = id_MOTOR_SERVICE  #encoders are within motor service in ASIP v1.1
 # Encoder methods - use system define, tag_AUTOEVENT_REQUEST ('A') to request autoevents
 # Encoder events -  events use system tag: tag_SERVICE_EVENT  ('e')
-
 
 # Bump detect service
 id_BUMP_SERVICE = 'B'
 # Bump sensor methods - use system define, tag_AUTOEVENT_REQUEST ('A') to request autoevents
 # Bump Sensor events -  events use system tag: tag_SERVICE_EVENT  ('e')
 
-
 # IR Line detect service
 id_IR_REFLECTANCE_SERVICE = 'R'
 # IR Line detect methods - use system define, tag_AUTOEVENT_REQUEST ('A') to request autoevents
 # IR Line detect events -  events use system tag: tag_SERVICE_EVENT  ('e')
-
 
 # LED LCD service
 id_LCD_SERVICE = 'L'
@@ -85,7 +76,6 @@ tag_CLEAR_ALL_PIXELS = 'C'
 id_TONE_SERVICE = 'T'
 # methods
 tag_PLAY = 'P'           # play tone of given frequency and duration
-
 
 NBR_WHEELS = 2  # defines the number of wheels (and encoders), note not tested with values other than 2
 
