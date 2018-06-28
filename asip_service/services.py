@@ -34,6 +34,7 @@ class Encoders:
             except ValueError:
                 log.error("Error while reading encoder value: %s" % message)
 
+
 class Motor:
     def __init__(self, name: str, svc_id: str, motor_id: int, conn, debug: bool=False):
         self.name = name
@@ -43,7 +44,6 @@ class Motor:
         self.header = asip.id_MOTOR_SERVICE  # M
         self.conn = conn
 
-    # TODO Check if serial is open
     def send_request(self, motor_power: int) -> None:
         """
         Function is sending a serial request to Arduino, in order to set motor speed
@@ -79,8 +79,6 @@ class Motor:
             log.debug("Setting motor id:{} to speed:{}".format(self.motor_id, speed))
         self.send_request(speed)
 
-
-    # Stop the motor (just set speed to 0)
     def stop_motor(self) -> None:
         """
         Stop motor by sending 0 value to a motor

@@ -33,7 +33,7 @@ class AsipManager:
     def open_serial(self):
         baud_rate = 57600
         my_port = self.selected_port
-        timeout = 0.7
+        timeout = 1
         self.conn.open(my_port, baud_rate, timeout)
         if self.debug:
             log.debug("Open serial port. %s" % self.conn)
@@ -95,7 +95,7 @@ class AsipManager:
             received_message = self.conn.get_buffer()
             # print (received_message)
             self.msg_dispatcher(received_message)
-            sleep(0.2)
+            sleep(0.001)
 
     def initialize_services(self) -> None:
         """

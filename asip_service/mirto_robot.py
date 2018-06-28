@@ -56,16 +56,20 @@ class MirtoRobot:
             sleep(interval)
         log.info("Finish encoder test")
 
-    def test_motor(self) -> None:
-        self.set_motors(30, 0)
-        sleep(5)
+    def test_motor(self, with_encoders: bool=False, period: time=5) -> None:
+        self.set_motors(30, 30)
+        if with_encoders:
+            self.test_encoders(0.1, period)
+        else:
+            sleep(period)
         self.stop_motors()
 
 
 if __name__ == '__main__':
+    # Run simple tests
     mirto = MirtoRobot()
-    mirto.test_encoders(0.1, 2)
-    mirto.test_motor()
+    # mirto.test_encoders(0.1, 2)
+    mirto.test_motor(True, 10)
     # This will stop all threads and close ports
     mirto.terminate()
 
