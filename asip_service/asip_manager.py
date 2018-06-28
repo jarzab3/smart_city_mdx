@@ -2,7 +2,7 @@
 from serialConnector import SerialConnection
 import asip
 import threading
-from Services import *
+from services import *
 from time import sleep
 import time
 
@@ -65,18 +65,15 @@ class AsipManager:
 
         # print (msg[1])
         if msg_head == asip.EVENT_HEADER:
+            print (msg[1])
             if msg[1] == asip.SYSTEM_MSG_HEADER:
                 print(msg[5:-1])
             else:
-                # self.event_dispatcher(msg[1], msg[8:-2])
                 self.event_dispatcher(msg)
         elif msg_head == asip.DEBUG_MSG_HEADER:
-            # print ("Debug msg")
-            # print(msg[1:])
-            # Todo add debug message
-            pass
+            print(msg[1:])
         elif msg_head == asip.ERROR_MSG_HEADER:
-            print ('Err: ' + msg[1:])
+            print('Err: ' + msg[1:])
 
     def event_dispatcher(self, msg):
         id = msg[1]
