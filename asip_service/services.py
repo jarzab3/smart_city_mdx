@@ -1,3 +1,13 @@
+#!/usr/bin/python3
+# -*- coding: <utf-8> -*-
+__author__ = "Adam Jarzebak"
+__copyright__ = "Copyright 2018, Middlesex University"
+__license__ = "MIT License"
+__version__ = "1.0.0"
+__maintainer__ = "Adam Jarzebak"
+__email__ = "adam@jarzebak.eu"
+__status__ = "Production"
+
 import asip
 from settings import logging as log
 import sys

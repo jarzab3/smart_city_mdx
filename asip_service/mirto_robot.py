@@ -1,3 +1,13 @@
+#!/usr/bin/python3
+# -*- coding: <utf-8> -*-
+__author__ = "Adam Jarzebak"
+__copyright__ = "Copyright 2018, Middlesex University"
+__license__ = "MIT License"
+__version__ = "1.0.0"
+__maintainer__ = "Adam Jarzebak"
+__email__ = "adam@jarzebak.eu"
+__status__ = "Production"
+
 from asip_manager import AsipManager
 from time import sleep
 from settings import logging as log
@@ -72,4 +82,3 @@ if __name__ == '__main__':
     mirto.test_motor(True, 10)
     # This will stop all threads and close ports
     mirto.terminate()
-
