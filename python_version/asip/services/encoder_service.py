@@ -2,7 +2,7 @@ from asip.services.asip_service import AsipService
 import sys
 
 class EncoderService(AsipService):
-    DEBUG = False
+    DEBUG = True
     _serviceID = 'E'
 
     # An encoder has a unique ID (there may be more than one encoder attached, each one has a different encoderID)
