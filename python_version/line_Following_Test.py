@@ -1,3 +1,5 @@
+# Author: Noman Niazi
+#Code may not be used by third part individuals or groups
 # importing library
 from time import sleep
 from asip.serial_mirto_robot import SerialMirtoRobot
