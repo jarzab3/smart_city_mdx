@@ -6,6 +6,7 @@ camera = cv2.VideoCapture(0)
 
 time.sleep(0.1)
 
+def readTrafficLight()
 while True:
     (grabbed, image) = camera.read()
 
