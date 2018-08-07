@@ -25,10 +25,22 @@ Say what the step will be
 Give the example
 ```
 
-And repeat
-
+Back/clone robot's image. And write to new SD card.
+#### Mac
 ```
-until finished
+##### Back up image
+- Find out disk name:
+1) sudo diskutil list
+- Unmount disk
+2) diskutil unmountDisk /dev/disk2
+- Make a copy
+3) sudo dd if=/dev/disk2 of=robot_mate_backup_03_07.img (replace disk name and in give your own name for an image)
+
+##### Restore Raspberry Pi SD Card
+- Unmount disk
+1) diskutil unmountDisk /dev/disk2
+- Write image to SD card
+2) sudo dd if=robot_mate_backup_03_07.img of=/dev/disk2
 ```
 
 End with an example of getting some data out of the system or using it for a little demo
