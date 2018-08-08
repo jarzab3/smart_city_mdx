@@ -64,7 +64,7 @@ class RobotMain:
                     self.mirto.set_motors(24, 24)
                 sleep(0.05)
         except Exception as error:
-            print (error)
+            print(error)
 
 
 drive = RobotMain()
