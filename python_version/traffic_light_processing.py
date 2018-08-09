@@ -15,6 +15,8 @@ from picamera import PiCamera
 from time import sleep
 from python_asip_client.serial_mirto_robot import SerialMirtoRobot
 from python_asip_client.mirto_robot import MirtoRobot
+import os
+import glob
 
 
 class TrainDetector:
@@ -63,6 +65,7 @@ class TrafficLightDetector:
         services = SerialMirtoRobot()
         services = services.get_services()
         self.mirto = MirtoRobot(services)
+        self.mirto.clear_lcd()
 
     def what_color_is(self):
         """
@@ -70,6 +73,11 @@ class TrafficLightDetector:
         :return: color detected
         """
         sleep(0.5)
+
+        files = glob.glob('live_images/*')
+        for f in files:
+            os.remove(f)
+        print("Cleaning directory")
         self.camera.capture(self.run_image_directory)
         print("Picture taken ..... ")
         url = 'https://api.vize.ai/v2/classify/'
@@ -87,8 +95,9 @@ class TrafficLightDetector:
 
         response = requests.post(url, headers=headers, data=json.dumps(data))
         json_obj = json.loads(response.text)
-        self.mirto.set_lcd_message(json_obj['records'][0]['best_label']['name'], 0)
-
+        result = json_obj['records'][0]['best_label']['name']
+        self.mirto.set_lcd_message(result, 0)
+        print(result)
         return json_obj['records'][0]['best_label']['name']
 
     # TODO this needs to be reviewed when Opencv installation comes back
@@ -122,10 +131,11 @@ class TrafficLightDetector:
                 try:
                     colour = self.what_color_is()
                     if colour == "GREEN":
-
+                        print("Image recognised green traffic light")
                         self.mirto.set_lcd_message("IT's GREEN, move ... ", 1)
                         self.mirto.set_motors_rpm(20, 20, 10000)
                     elif colour == "RED":
+                        print("Image recognised red traffic light")
                         self.mirto.set_lcd_message("IT's RED, stop ... ", 1)
                         self.mirto.stop_motors()
 
@@ -137,8 +147,6 @@ class TrafficLightDetector:
                         sys.exit(0)
 
     def drive_for(self, millisec):
-
-
         """
         Function to make robot drive for a certain amount of millimeters
         :param mm: int
@@ -148,7 +156,7 @@ class TrafficLightDetector:
         print("driving straight for %s millisec" % millisec)
 
 
-trainer = TrainDetector()
+# trainer = TrainDetector()
 trafficLight = TrafficLightDetector()
 trafficLight.what_color_is()
 # driveFor(3000)
