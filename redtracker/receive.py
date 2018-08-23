@@ -3,7 +3,7 @@ class StreamHandler:
     def __init__(self):
         self.url = '192.168.200.100/stream.mjpeg'
 
-    def receive_stream():
+    def receive_stream(self):
         stream = None
 
         # Try to initialised a stream connection. Note is case of 404 error, please check if stream source is running
