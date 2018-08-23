@@ -1,9 +1,11 @@
 # Author: Noman Niazi
 #Code may not be used by third part individuals or groups
-# importing library
+from python_asip_client.serial_mirto_robot import SerialMirtoRobot
+from python_asip_client.mirto_robot import MirtoRobot
 from time import sleep
-from asip.serial_mirto_robot import SerialMirtoRobot
-robot = SerialMirtoRobot()
+services = SerialMirtoRobot()
+services = services.get_services()
+robot = MirtoRobot(services)
 
 # creating a function call read_all_ir_values that reads the values from the ir sensors on the mirto robot
 def read_all_ir_values():
