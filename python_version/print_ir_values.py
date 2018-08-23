@@ -2,17 +2,15 @@
 # --copyright: = Copyright 2018, Middlesex University--
 # --license: MIT License--
 # --maintainer: "Mr Noman Niazi--
-
 from python_asip_client.tcp_mirto_robot import TCPMirtoRobot
 from python_asip_client.mirto_robot import MirtoRobot
-services = TCPMirtoRobot("robot1").get_services()
-# ip_address = "10.42.0.163"
-from time import sleep, time
+from time import sleep
+
 
 class RobotMain:
     def __init__(self):
-        mirto = MirtoRobot(services)
-
+        services = TCPMirtoRobot("robot1").get_services()
+        self.mirto = MirtoRobot(services)
 
     def get_mirto_ir_values(self):
         ordered_ir_values = []
@@ -22,7 +20,6 @@ class RobotMain:
         right_ir = ir_values[1]
         ordered_ir_values.extend((left_ir, center_ir, right_ir))
         return ordered_ir_values
-
 
     def get_ir_values_threshold(self):
         """
@@ -41,16 +38,15 @@ class RobotMain:
             else:
                 sensor_val[1] = False
                 sensors_vals[sensor] = sensor_val
-        print(sensors_vals, "\n")
+        # print(sensors_vals, "\n")
         return sensors_vals
-
 
     def run_main(self):
         try:
             while True:
                 ir_values_after_check = self.get_ir_values_threshold()
                 if ir_values_after_check.get("left")[1]:
-                    self.mirto.set_motors_rpm()
+                    # self.mirto.set_motors_rpm()
                     self.mirto.set_motors(19, 25)
                 elif ir_values_after_check.get("right")[1]:
                     self.mirto.set_motors(25, 19)

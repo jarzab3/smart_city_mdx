@@ -1,11 +1,3 @@
-from mirto_asip_manager.mirto_robot import MirtoRobot
-from time import sleep
-
-services_to_run = {"encoders": [True, False], "motors": [True, False], "ir_sensors": [True, False],
-                   "tone": [True, False]}
-
-# Run services test
-mirto = MirtoRobot(debug=False, services_on=services_to_run)
 
 
 def get_Motor_Distance_Values():
