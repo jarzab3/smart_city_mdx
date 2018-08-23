@@ -36,5 +36,5 @@ class StreamHandler:
                     print("Error while stream receiving: {}".format(error))
 
 
-sh = StreamHandler
+sh = StreamHandler()
 sh.receive_stream()
