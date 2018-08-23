@@ -1,7 +1,12 @@
+import urllib2
+import numpy as np
+import cv2
+from time import sleep
+
 
 class StreamHandler:
     def __init__(self):
-        self.url = '192.168.200.100/stream.mjpeg'
+        self.url = 'http://0192.168.200.100:8000/stream.mjpg'
 
     def receive_stream(self):
         stream = None
@@ -9,12 +14,12 @@ class StreamHandler:
         # Try to initialised a stream connection. Note is case of 404 error, please check if stream source is running
         try:
             stream = urllib2.urlopen(self.url)
-            log.info("Successfully opened a stream")
+            print("Successfully opened a stream")
 
         except urllib2.HTTPError as e:
 
             code = e.code
-            log.error("URLLIB error while opening a stream: %s" % code)
+            print("URLLIB error while opening a stream: %s" % code)
 
         # Init bytes value to which data from streaming can be appended and then converted to a frame
         bytes = ''
@@ -30,11 +35,9 @@ class StreamHandler:
                         bytes = bytes[b + 2:]
                         nparr = np.fromstring(frameBytes, np.uint8)
                         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                        cv2.imshow('asd', frame)
-
+                    # Display the resulting frame
+    		        cv2.imshow('frame',frame)
+                        if cv2.waitKey(1) & 0xFF == ord('q'):
+                            break
                 except Exception as error:
                     print("Error while stream receiving: {}".format(error))
-
-
-sh = StreamHandler()
-sh.receive_stream()
