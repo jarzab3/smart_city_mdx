@@ -41,3 +41,5 @@ class StreamHandler:
                         break
                 except Exception as error:
                     print("Error while stream receiving: {}".format(error))
+st = StreamHandler()
+st.receive_stream()
