@@ -233,21 +233,26 @@ class LaserTracker(object):
             self.create_and_position_window('Saturation', 30, 30)
             self.create_and_position_window('Value', 40, 40)
 
-    def run(self):
+    def run(self, stream_frame=None):
         # Set up window positions
         self.setup_windows()
         # Set up the camera capture
         self.setup_camera_capture()
 
-        while True:
-            # 1. capture the current image
-            success, frame = self.capture.read()
-            if not success:  # no image captured... end the processing
-                sys.stderr.write("Could not read camera frame. Quitting\n")
-                sys.exit(1)
-
-            hsv_image = self.detect(frame)
-            self.display(hsv_image, frame)
+        # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
+        if stream_frame is None:
+            while True:
+                # 1. capture the current image
+                success, frame = self.capture.read()
+                if not success:  # no image captured... end the processing
+                    sys.stderr.write("Could not read camera frame. Quitting\n")
+                    sys.exit(1)
+                hsv_image = self.detect(frame)
+                self.display(hsv_image, frame)
+                self.handle_quit()
+        else:
+            hsv_image = self.detect(stream_frame)
+            self.display(hsv_image, stream_frame)
             self.handle_quit()
 
 
