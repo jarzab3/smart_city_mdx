@@ -168,7 +168,7 @@ class LaserTracker(object):
 #                    cv2.line(self.trail, self.previous_position, center,
 #                             (255, 255, 255), 2)
             else:
-                print("GREEN")
+                print(" ---- none ----")
 
         cv2.add(self.trail, frame, frame)
         self.previous_position = center
@@ -234,10 +234,10 @@ class LaserTracker(object):
             self.create_and_position_window('Value', 40, 40)
 
     def run(self, stream_frame=None):
-        # Set up window positions
-        self.setup_windows()
-        # Set up the camera capture
-        self.setup_camera_capture()
+        # # Set up window positions
+        # self.setup_windows()
+        # # Set up the camera capture
+        # self.setup_camera_capture()
 
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
         if stream_frame is None:

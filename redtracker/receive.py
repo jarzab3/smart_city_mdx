@@ -9,6 +9,10 @@ class StreamHandler:
     def __init__(self):
         self.url = 'http://192.168.200.100:4000/stream.mjpg'
         self.tracker = LaserTracker()
+        # Set up window positions
+        self.tracker.setup_windows()
+        # Set up the camera capture
+        self.tracker.setup_camera_capture()
 
     def receive_stream(self):
         stream = None
