@@ -7,7 +7,7 @@ from laser_tracker import LaserTracker
 
 class StreamHandler:
     def __init__(self):
-        self.url = 'http://0192.168.200.100:8000/stream.mjpg'
+        self.url = 'http://192.168.200.100:8000/stream.mjpg'
         self.tracker = LaserTracker()
 
     def receive_stream(self):
