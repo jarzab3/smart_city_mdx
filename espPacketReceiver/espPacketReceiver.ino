@@ -2,8 +2,8 @@
 #include <WiFiUdp.h>
 
 // Network credentials need need changing here 
-const char* ssid = "System_Main";
-const char* password = "SmartCityNetwork";
+const char* ssid = "Air Pen express";
+const char* password = "";
 
 WiFiUDP Udp;
 unsigned int localUdpPort = 8888;  // local port to listen on
@@ -20,7 +20,7 @@ void setup()
 
   Serial.printf("Connecting to %s ", ssid);
   // IP adress need changing here for each individual traffic light 254,253,252 andd so on
-  WiFi.config(IPAddress(10, 42, 0, 254), IPAddress(10, 42, 0, 1), IPAddress(10, 42, 0, 1), IPAddress(255, 255, 255, 0));
+  WiFi.config(IPAddress(10, 42, 0, 252), IPAddress(10, 42, 0, 1), IPAddress(10, 42, 0, 1), IPAddress(255, 255, 255, 0));
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
