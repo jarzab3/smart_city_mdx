@@ -252,7 +252,7 @@ class LaserTracker(object):
                 self.handle_quit()
         else:
             hsv_image = self.detect(stream_frame)
-            self.display(hsv_image, stream_frame)
+            # self.display(hsv_image, stream_frame)
             self.handle_quit()
 
 
