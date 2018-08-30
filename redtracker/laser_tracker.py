@@ -28,7 +28,6 @@ class LaserTracker(object):
           values for threshold image channels.
 
         """
-
         self.cam_width = cam_width
         self.cam_height = cam_height
         self.hue_min = hue_min
@@ -38,7 +37,6 @@ class LaserTracker(object):
         self.val_min = val_min
         self.val_max = val_max
         self.display_thresholds = display_thresholds
-
         self.capture = None  # camera capture device
         self.channels = {
             'hue': None,
@@ -46,7 +44,6 @@ class LaserTracker(object):
             'value': None,
             'laser': None,
         }
-
         self.previous_position = None
         self.trail = numpy.zeros((self.cam_height, self.cam_width, 3),
                                  numpy.uint8)
@@ -133,7 +130,6 @@ class LaserTracker(object):
     def track(self, frame, mask):
         """
         Track the position of the laser pointer.
-
         Code taken from
         http://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
         """
@@ -141,7 +137,6 @@ class LaserTracker(object):
 
         countours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)[-2]
-
         # only proceed if at least one contour was found
         if len(countours) > 0:
             # find the largest contour in the mask, then use
@@ -168,7 +163,7 @@ class LaserTracker(object):
 #                    cv2.line(self.trail, self.previous_position, center,
 #                             (255, 255, 255), 2)
             else:
-                print(" ---- none ----")
+                print("Other color")
 
         cv2.add(self.trail, frame, frame)
         self.previous_position = center
@@ -181,12 +176,10 @@ class LaserTracker(object):
         self.channels['hue'] = h
         self.channels['saturation'] = s
         self.channels['value'] = v
-
         # Threshold ranges of HSV components; storing the results in place
         self.threshold_image("hue")
         self.threshold_image("saturation")
         self.threshold_image("value")
-
         # Perform an AND on HSV components to identify the laser!
         self.channels['laser'] = cv2.bitwise_and(
             self.channels['hue'],
@@ -196,7 +189,6 @@ class LaserTracker(object):
             self.channels['saturation'],
             self.channels['laser']
         )
-
         # Merge the HSV components back together.
         hsv_image = cv2.merge([
             self.channels['hue'],
@@ -234,13 +226,12 @@ class LaserTracker(object):
             self.create_and_position_window('Value', 40, 40)
 
     def run(self, stream_frame=None):
-        # # Set up window positions
-        # self.setup_windows()
-        # # Set up the camera capture
-        # self.setup_camera_capture()
-
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
         if stream_frame is None:
+            # Set up window positions
+            self.setup_windows()
+            # Set up the camera capture
+            self.setup_camera_capture()
             while True:
                 # 1. capture the current image
                 success, frame = self.capture.read()
