@@ -8,11 +8,7 @@ from laser_tracker import LaserTracker
 class StreamHandler:
     def __init__(self):
         self.url = 'http://192.168.200.100:4000/stream.mjpg'
-        self.tracker = LaserTracker()
-        # Set up window positions
-        self.tracker.setup_windows()
-        # Set up the camera capture
-        self.tracker.setup_camera_capture()
+        self.tracker = LaserTracker(headless=True)
 
     def receive_stream(self):
         stream = None
@@ -37,10 +33,8 @@ class StreamHandler:
                         np_array = np.fromstring(frame_bytes, np.uint8)
                         frame = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
                         self.tracker.run(frame)
-
                     # Display the resulting frame
                     # cv2.imshow('frame',frame)
-
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
                 except Exception as error:

@@ -9,7 +9,7 @@ class LaserTracker(object):
 
     def __init__(self, cam_width=640, cam_height=480, hue_min=20, hue_max=160,
                  sat_min=100, sat_max=255, val_min=200, val_max=256,
-                 display_thresholds=True):
+                 display_thresholds=True, headless=False):
         """
         * ``cam_width`` x ``cam_height`` -- This should be the size of the
         image coming from the camera. Default is 640x480.
@@ -47,6 +47,7 @@ class LaserTracker(object):
         self.previous_position = None
         self.trail = numpy.zeros((self.cam_height, self.cam_width, 3),
                                  numpy.uint8)
+        self.headless = headless
 
     def create_and_position_window(self, name, xpos, ypos):
         """Creates a named widow placing it on the screen at (xpos, ypos)."""
@@ -107,21 +108,18 @@ class LaserTracker(object):
         elif channel == "value":
             minimum = self.val_min
             maximum = self.val_max
-
         (t, tmp) = cv2.threshold(
             self.channels[channel],  # src
             maximum,  # threshold value
             0,  # we dont care because of the selected type
             cv2.THRESH_TOZERO_INV  # t type
         )
-
         (t, self.channels[channel]) = cv2.threshold(
             tmp,  # src
             minimum,  # threshold value
             255,  # maxvalue
             cv2.THRESH_BINARY  # type
         )
-
         if channel == 'hue':
             # only works for filtering red color because the range for the hue
             # is split
@@ -134,7 +132,6 @@ class LaserTracker(object):
         http://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
         """
         center = None
-
         countours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)[-2]
         # only proceed if at least one contour was found
@@ -153,24 +150,26 @@ class LaserTracker(object):
 
             # only proceed if the radius meets a minimum size
             if radius > 10:
-                # draw the circle and centroid on the frame,
-                cv2.circle(frame, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-                cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                if not self.headless:
+                    # draw the circle and centroid on the frame,
+                    cv2.circle(frame, (int(x), int(y)), int(radius),
+                               (0, 255, 255), 2)
+                    cv2.circle(frame, center, 5, (0, 0, 255), -1)
                 print("RED")
                 # then update the ponter trail
 #                if self.previous_position:
 #                    cv2.line(self.trail, self.previous_position, center,
 #                             (255, 255, 255), 2)
             else:
+                if not self.headless:
+                    # Add gui if needed
+                    pass
                 print("Other color")
-
         cv2.add(self.trail, frame, frame)
         self.previous_position = center
 
     def detect(self, frame):
         hsv_img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
         # split the video frame into color channels
         h, s, v = cv2.split(hsv_img)
         self.channels['hue'] = h
@@ -195,9 +194,7 @@ class LaserTracker(object):
             self.channels['saturation'],
             self.channels['value'],
         ])
-
         self.track(frame, self.channels['laser'])
-
         return hsv_image
 
     def display(self, img, frame):
@@ -228,10 +225,11 @@ class LaserTracker(object):
     def run(self, stream_frame=None):
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
         if stream_frame is None:
-            # Set up window positions
-            self.setup_windows()
-            # Set up the camera capture
-            self.setup_camera_capture()
+            if self.headless is not None:
+                # Set up window positions
+                self.setup_windows()
+                # Set up the camera capture
+                self.setup_camera_capture()
             while True:
                 # 1. capture the current image
                 success, frame = self.capture.read()
