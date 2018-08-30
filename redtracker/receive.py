@@ -8,7 +8,8 @@ from laser_tracker import LaserTracker
 class StreamHandler:
     def __init__(self):
         self.url = 'http://192.168.200.100:4000/stream.mjpg'
-        self.tracker = LaserTracker(headless=True)
+        self.headless = True
+        self.tracker = LaserTracker(headless=self.headless)
 
     def receive_stream(self):
         stream = None
@@ -22,6 +23,11 @@ class StreamHandler:
         # Init bytes value to which data from streaming can be appended and then converted to a frame
         bytes = ''
         if stream is not None:
+            if not self.headless:
+                # Set up window positions
+                self.tracker.setup_windows()
+                # Set up the camera capture
+                self.tracker.setup_camera_capture()
             while True:
                 try:
                     bytes += stream.read(1024)

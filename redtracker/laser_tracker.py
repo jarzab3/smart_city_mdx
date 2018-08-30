@@ -3,6 +3,9 @@ import sys
 import argparse
 import cv2
 import numpy
+from Tkinter import *
+from threading import Thread
+from time import sleep
 
 
 class LaserTracker(object):
@@ -48,6 +51,22 @@ class LaserTracker(object):
         self.trail = numpy.zeros((self.cam_height, self.cam_width, 3),
                                  numpy.uint8)
         self.headless = headless
+        self.master = Tk()
+        self.w = Scale(self.master, from_=0, to=255)
+        self.ma = Scale(self.master, from_=0, to=255)
+        self.satminn = Scale(self.master, from_=0, to=255)
+        self.satmaxx = Scale(self.master, from_=0, to=255)
+        self.valminn = Scale(self.master, from_=0, to=255)
+        self.valmaxx = Scale(self.master, from_=0, to=255)
+        self.w.pack()
+        self.ma.pack()
+        self.satminn.pack()
+        self.satmaxx.pack()
+        self.valminn.pack()
+        self.valmaxx.pack()
+
+        # self.w = Scale(self.master, from_=0, to=200, orient=HORIZONTAL)
+        # self.w.pack()
 
     def create_and_position_window(self, name, xpos, ypos):
         """Creates a named widow placing it on the screen at (xpos, ypos)."""
@@ -222,10 +241,25 @@ class LaserTracker(object):
             self.create_and_position_window('Saturation', 30, 30)
             self.create_and_position_window('Value', 40, 40)
 
+    def create_gui(self):
+        thread = Thread(target=mainloop, args=())
+        thread.start()
+
+    def update_vals(self):
+        self.hue_min = self.w.get()
+        self.hue_max = self.ma.get()
+        self.sat_min = self.satminn.get()
+        self.sat_max = self.satmaxx.get()
+        self.val_min = self.valminn.get()
+        self.val_max = self.valmaxx.get()
+
+
+
+
     def run(self, stream_frame=None):
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
         if stream_frame is None:
-            if self.headless is not None:
+            if not self.headless:
                 # Set up window positions
                 self.setup_windows()
                 # Set up the camera capture
@@ -241,7 +275,12 @@ class LaserTracker(object):
                 self.handle_quit()
         else:
             hsv_image = self.detect(stream_frame)
-            # self.display(hsv_image, stream_frame)
+            self.master.update_idletasks()
+            self.master.update()
+            self.update_vals()
+            if not self.headless:
+                self.display(hsv_image, stream_frame)
+                self.handle_quit()
             self.handle_quit()
 
 
@@ -280,6 +319,7 @@ if __name__ == '__main__':
                         type=int,
                         help='Value Maximum Threshold')
     parser.add_argument('-d', '--display',
+                        default=True,
                         action='store_true',
                         help='Display Threshold Windows')
     params = parser.parse_args()
@@ -293,6 +333,7 @@ if __name__ == '__main__':
         sat_max=params.satmax,
         val_min=params.valmin,
         val_max=params.valmax,
-        display_thresholds=params.display
+        display_thresholds=params.display,
+        headless=False
     )
     tracker.run()
