@@ -9,18 +9,17 @@ WiFiUDP Udp;
 unsigned int localUdpPort = 8888;  // local port to listen on
 char incomingPacket[255];  // buffer for incoming packets
 
-
 void setup()
 {
   pinMode(D0, OUTPUT);
   pinMode(D2, OUTPUT);
-  digitalWrite(D0, LOW); // Inverted Logic
+  digitalWrite(D2, LOW); // Inverted Logic
   Serial.begin(115200);
   Serial.println();
 
   Serial.printf("Connecting to %s ", ssid);
   // IP adress need changing here for each individual traffic light 254,253,252 andd so on
-  WiFi.config(IPAddress(10, 42, 0, 252), IPAddress(10, 42, 0, 1), IPAddress(10, 42, 0, 1), IPAddress(255, 255, 255, 0));
+  WiFi.config(IPAddress(192, 168, 200, 150), IPAddress(192, 168, 200, 1), IPAddress(255, 255, 255, 0));
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -57,6 +56,5 @@ void loop()
 
       Serial.println("LED OFF");
     }
-
   }
 }
