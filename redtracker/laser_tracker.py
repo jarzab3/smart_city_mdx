@@ -3,9 +3,8 @@ import sys
 import argparse
 import cv2
 import numpy
-from Tkinter import *
-from threading import Thread
 from time import sleep
+import os
 
 
 class LaserTracker(object):
@@ -64,9 +63,7 @@ class LaserTracker(object):
         self.satmaxx.pack()
         self.valminn.pack()
         self.valmaxx.pack()
-
-        # self.w = Scale(self.master, from_=0, to=200, orient=HORIZONTAL)
-        # self.w.pack()
+        self.file_name = 'hsv_range_data.txt'
 
     def create_and_position_window(self, name, xpos, ypos):
         """Creates a named widow placing it on the screen at (xpos, ypos)."""
@@ -76,6 +73,27 @@ class LaserTracker(object):
         cv2.resizeWindow(name, self.cam_width, self.cam_height)
         # Move to (xpos,ypos) on the screen
         cv2.moveWindow(name, xpos, ypos)
+
+    def read_data(self):
+        """
+        Reads from a file and returns a data in the array type.
+        :return:
+        """
+        file_name = "hsv_range_data.txt"
+        row_from_file = []
+        with open(file_name, 'r', os.O_NONBLOCK, encoding="utf-8") as r:
+            reader = csv.reader(r, delimiter=',')
+            for i, row in enumerate(reader):
+                row_from_file = row
+        return row_from_file
+
+    def update_vals(self):
+        """
+        This function is suppose to update class variable, after we read the data from a file, using function above.
+        :return: None
+        """
+        self.read_data()
+        # TODO extract it from array and update variables
 
     def setup_camera_capture(self, device_num=0):
         """Perform camera setup for the device number (default device = 0).
@@ -166,7 +184,6 @@ class LaserTracker(object):
                          int(moments["m01"] / moments["m00"])
             else:
                 center = int(x), int(y)
-
             # only proceed if the radius meets a minimum size
             if radius > 10:
                 if not self.headless:
@@ -230,7 +247,6 @@ class LaserTracker(object):
 
     def setup_windows(self):
         sys.stdout.write("Using OpenCV version: {0}\n".format(cv2.__version__))
-
         # create output windows
         self.create_and_position_window('LaserPointer', 0, 0)
         self.create_and_position_window('RGB_VideoFrame',
@@ -240,21 +256,6 @@ class LaserTracker(object):
             self.create_and_position_window('Hue', 20, 20)
             self.create_and_position_window('Saturation', 30, 30)
             self.create_and_position_window('Value', 40, 40)
-
-    def create_gui(self):
-        thread = Thread(target=mainloop, args=())
-        thread.start()
-
-    def update_vals(self):
-        self.hue_min = self.w.get()
-        self.hue_max = self.ma.get()
-        self.sat_min = self.satminn.get()
-        self.sat_max = self.satmaxx.get()
-        self.val_min = self.valminn.get()
-        self.val_max = self.valmaxx.get()
-
-
-
 
     def run(self, stream_frame=None):
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
@@ -270,14 +271,15 @@ class LaserTracker(object):
                 if not success:  # no image captured... end the processing
                     sys.stderr.write("Could not read camera frame. Quitting\n")
                     sys.exit(1)
+                # Update values from a file
+                self.update_vals()
                 hsv_image = self.detect(frame)
                 self.display(hsv_image, frame)
                 self.handle_quit()
         else:
-            hsv_image = self.detect(stream_frame)
-            self.master.update_idletasks()
-            self.master.update()
+            # Update values from a file
             self.update_vals()
+            hsv_image = self.detect(stream_frame)
             if not self.headless:
                 self.display(hsv_image, stream_frame)
                 self.handle_quit()
@@ -322,6 +324,9 @@ if __name__ == '__main__':
                         default=True,
                         action='store_true',
                         help='Display Threshold Windows')
+    parser.add_argument('-a', '--adjust_values',
+                        default=False,
+                        help='Display GUI for adjusting a values')
     params = parser.parse_args()
 
     tracker = LaserTracker(
@@ -336,4 +341,7 @@ if __name__ == '__main__':
         display_thresholds=params.display,
         headless=False
     )
+    if params.adjust_values:
+        os.system('python sliders.py')
+        print("Run gui, for adjusting values")
     tracker.run()
