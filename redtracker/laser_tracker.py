@@ -5,10 +5,10 @@ import cv2
 import numpy
 from time import sleep
 import os
+import csv
 
 
 class LaserTracker(object):
-
     def __init__(self, cam_width=640, cam_height=480, hue_min=20, hue_max=160,
                  sat_min=100, sat_max=255, val_min=200, val_max=256,
                  display_thresholds=True, headless=False):
@@ -50,19 +50,6 @@ class LaserTracker(object):
         self.trail = numpy.zeros((self.cam_height, self.cam_width, 3),
                                  numpy.uint8)
         self.headless = headless
-        self.master = Tk()
-        self.w = Scale(self.master, from_=0, to=255)
-        self.ma = Scale(self.master, from_=0, to=255)
-        self.satminn = Scale(self.master, from_=0, to=255)
-        self.satmaxx = Scale(self.master, from_=0, to=255)
-        self.valminn = Scale(self.master, from_=0, to=255)
-        self.valmaxx = Scale(self.master, from_=0, to=255)
-        self.w.pack()
-        self.ma.pack()
-        self.satminn.pack()
-        self.satmaxx.pack()
-        self.valminn.pack()
-        self.valmaxx.pack()
         self.file_name = 'hsv_range_data.txt'
 
     def create_and_position_window(self, name, xpos, ypos):
@@ -260,11 +247,11 @@ class LaserTracker(object):
     def run(self, stream_frame=None):
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
         if stream_frame is None:
+            self.setup_camera_capture()
             if not self.headless:
                 # Set up window positions
                 self.setup_windows()
                 # Set up the camera capture
-                self.setup_camera_capture()
             while True:
                 # 1. capture the current image
                 success, frame = self.capture.read()
@@ -339,7 +326,7 @@ if __name__ == '__main__':
         val_min=params.valmin,
         val_max=params.valmax,
         display_thresholds=params.display,
-        headless=False
+        headless=True
     )
     if params.adjust_values:
         os.system('python sliders.py')
