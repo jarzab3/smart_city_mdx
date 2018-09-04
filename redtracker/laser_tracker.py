@@ -328,7 +328,7 @@ if __name__ == '__main__':
         val_min=params.valmin,
         val_max=params.valmax,
         display_thresholds=params.display,
-        headless=True
+        headless=False
     )
     if params.adjust_values:
         from subprocess import call
