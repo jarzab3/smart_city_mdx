@@ -16,7 +16,7 @@ entries = []
 
 
 def save_value(data):
-    file_name="hsv_range_data.txt"
+    file_name = "hsv_range_data.txt"
     with open(file_name, 'w', os.O_NONBLOCK, encoding="utf-8") as w:
         writer = csv.writer(w, delimiter=',')
         writer.writerow(data)

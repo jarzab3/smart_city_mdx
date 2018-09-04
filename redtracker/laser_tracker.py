@@ -66,9 +66,8 @@ class LaserTracker(object):
         Reads from a file and returns a data in the array type.
         :return:
         """
-        file_name = "hsv_range_data.txt"
         row_from_file = []
-        with open(file_name, 'r', os.O_NONBLOCK, encoding="utf-8") as r:
+        with open(self.file_name, 'r', os.O_NONBLOCK, encoding="utf-8") as r:
             reader = csv.reader(r, delimiter=',')
             for i, row in enumerate(reader):
                 row_from_file = row
@@ -79,13 +78,14 @@ class LaserTracker(object):
         This function is suppose to update class variable, after we read the data from a file, using function above.
         :return: None
         """
-        self.read_data()
+        data = self.read_data()
+        print("Data to extract: {}".format(data))
         # TODO extract it from array and update variables
 
     def setup_camera_capture(self, device_num=0):
-        """Perform camera setup for the device number (default device = 0).
-        Returns a reference to the camera Capture object.
-
+        """
+        Perform camera setup for the device number (default device = 0).
+        Returns" a reference to the camera Capture object.
         """
         try:
             device = int(device_num)
@@ -188,6 +188,8 @@ class LaserTracker(object):
                     # Add gui if needed
                     pass
                 print("Other color")
+        # print("STOP")
+        # sleep(20)
         cv2.add(self.trail, frame, frame)
         self.previous_position = center
 
@@ -329,6 +331,8 @@ if __name__ == '__main__':
         headless=True
     )
     if params.adjust_values:
-        os.system('python sliders.py')
+        from subprocess import call
+        call(["python3", "sliders.py"])
+        # os.system('python3 sliders.py')
         print("Run gui, for adjusting values")
     tracker.run()
