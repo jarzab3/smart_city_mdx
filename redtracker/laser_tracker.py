@@ -29,6 +29,7 @@ class LaserTracker(object):
         * ``display_thresholds`` -- if True, additional windows will display
           values for threshold image channels.
 
+
         """
         self.cam_width = cam_width
         self.cam_height = cam_height
