@@ -33,7 +33,8 @@ class LaserTracker(object):
         """
         self.cam_width = cam_width
         self.cam_height = cam_height
-        self.hue_min = hue_min
+        # TODO add more of those
+        self.hue_min_g = hue_min
         self.hue_max = hue_max
         self.sat_min = sat_min
         self.sat_max = sat_max
@@ -80,6 +81,7 @@ class LaserTracker(object):
         :return: None
         """
         data = self.read_data()
+        # TODO choose which values to set from slider
         if len(data) == 6:
             self.hue_min = int(data[0])
             self.hue_max = int(data[1])
@@ -90,7 +92,7 @@ class LaserTracker(object):
             # print("Data vals: {}".format(data))
             # TODO extract it from array and update variables
 
-    def setup_camera_capture(self, device_num=1):
+    def setup_camera_capture(self, device_num=0):
         """
         Perform camera setup for the device number (default device = 0).
         Returns" a reference to the camera Capture object.
@@ -156,6 +158,9 @@ class LaserTracker(object):
             # only works for filtering red color because the range for the hue
             # is split
             self.channels['hue'] = cv2.bitwise_not(self.channels['hue'])
+
+
+    # TODO Add new track function
 
     def track(self, frame, mask):
         """
@@ -227,6 +232,7 @@ class LaserTracker(object):
             self.channels['saturation'],
             self.channels['value'],
         ])
+        # TODO Add if
         self.track(frame, self.channels['laser'])
         return hsv_image
 
@@ -248,11 +254,11 @@ class LaserTracker(object):
         self.create_and_position_window('LaserPointer', 0, 0)
         self.create_and_position_window('RGB_VideoFrame',
                                         10 + self.cam_width, 0)
-        if self.display_thresholds:
-            self.create_and_position_window('Thresholded_HSV_Image', 10, 10)
-            self.create_and_position_window('Hue', 20, 20)
-            self.create_and_position_window('Saturation', 30, 30)
-            self.create_and_position_window('Value', 40, 40)
+        # if self.display_thresholds:
+        #    self.create_and_position_window('Thresholded_HSV_Image', 10, 10)
+        #    self.create_and_position_window('Hue', 20, 20)
+        #    self.create_and_position_window('Saturation', 30, 30)
+        #    self.create_and_position_window('Value', 40, 40)
 
     def run(self, stream_frame=None):
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
