@@ -180,7 +180,7 @@ class LaserTracker(object):
             else:
                 center = int(x), int(y)
             # only proceed if the radius meets a minimum size
-            if radius > 2:
+            if radius > 2 and radius <10:
                 if not self.headless:
                     # draw the circle and centroid on the frame,
                     cv2.circle(frame, (int(x), int(y)), int(radius),
