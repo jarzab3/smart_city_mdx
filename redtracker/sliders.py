@@ -17,7 +17,7 @@ file_name = "hsv_range_data.txt"
 
 
 def save_value(data):
-    with open(file_name, 'w', os.O_NONBLOCK, encoding="utf-8") as w:
+    with open(file_name, 'w', os.O_NONBLOCK) as w:
         writer = csv.writer(w, delimiter=',')
         writer.writerow(data)
         w.flush()
@@ -29,7 +29,7 @@ def read_data():
     :return:
     """
     row_from_file = []
-    with open(file_name, 'r', os.O_NONBLOCK, encoding="utf-8") as rea:
+    with open(file_name, 'r', os.O_NONBLOCK) as rea:
         reader = csv.reader(rea, delimiter=',')
         for i, row in enumerate(reader):
             row_from_file = row
