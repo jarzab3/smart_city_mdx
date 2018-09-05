@@ -13,7 +13,7 @@ from laser_tracker import LaserTracker
 class StreamHandler:
     def __init__(self):
         self.url = 'http://192.168.200.100:4000/stream.mjpg'
-        self.headless = True
+        self.headless = False
         self.tracker = LaserTracker(headless=self.headless)
 
     def receive_stream(self):

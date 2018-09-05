@@ -90,7 +90,7 @@ class LaserTracker(object):
             # print("Data vals: {}".format(data))
             # TODO extract it from array and update variables
 
-    def setup_camera_capture(self, device_num=0):
+    def setup_camera_capture(self, device_num=1):
         """
         Perform camera setup for the device number (default device = 0).
         Returns" a reference to the camera Capture object.
@@ -180,13 +180,13 @@ class LaserTracker(object):
             else:
                 center = int(x), int(y)
             # only proceed if the radius meets a minimum size
-            if radius > 10:
+            if radius > 2:
                 if not self.headless:
                     # draw the circle and centroid on the frame,
                     cv2.circle(frame, (int(x), int(y)), int(radius),
                                (0, 255, 255), 2)
                     cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                print("RED")
+                print("GREEN")
                 # then update the ponter trail
 #                if self.previous_position:
 #                    cv2.line(self.trail, self.previous_position, center,
@@ -236,11 +236,11 @@ class LaserTracker(object):
         """
         cv2.imshow('RGB_VideoFrame', frame)
         cv2.imshow('LaserPointer', self.channels['laser'])
-        if self.display_thresholds:
-            cv2.imshow('Thresholded_HSV_Image', img)
-            cv2.imshow('Hue', self.channels['hue'])
-            cv2.imshow('Saturation', self.channels['saturation'])
-            cv2.imshow('Value', self.channels['value'])
+        # if self.display_thresholds:
+        #     cv2.imshow('Thresholded_HSV_Image', img)
+        #     cv2.imshow('Hue', self.channels['hue'])
+        #     cv2.imshow('Saturation', self.channels['saturation'])
+        #     cv2.imshow('Value', self.channels['value'])
 
     def setup_windows(self):
         sys.stdout.write("Using OpenCV version: {0}\n".format(cv2.__version__))
