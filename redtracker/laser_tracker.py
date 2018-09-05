@@ -68,7 +68,7 @@ class LaserTracker(object):
         :return:
         """
         row_from_file = []
-        with open(self.file_name, 'r', os.O_NONBLOCK, encoding="utf-8") as r:
+        with open(self.file_name, 'r', os.O_NONBLOCK) as r:
             reader = csv.reader(r, delimiter=',')
             for i, row in enumerate(reader):
                 row_from_file = row
