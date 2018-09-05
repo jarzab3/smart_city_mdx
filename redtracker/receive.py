@@ -1,4 +1,9 @@
+# Python2
 import urllib2
+# Python3
+# import urllib
+# from urllib.request import urlopen
+
 import numpy as np
 import cv2
 from time import sleep

@@ -79,8 +79,15 @@ class LaserTracker(object):
         :return: None
         """
         data = self.read_data()
-        print("Data to extract: {}".format(data))
-        # TODO extract it from array and update variables
+        if len(data) == 6:
+            self.hue_min = int(data[0])
+            self.hue_max = int(data[1])
+            self.sat_min = int(data[2])
+            self.sat_max = int(data[3])
+            self.val_min = int(data[4])
+            self.val_max = int(data[5])
+            # print("Data vals: {}".format(data))
+            # TODO extract it from array and update variables
 
     def setup_camera_capture(self, device_num=0):
         """
@@ -189,9 +196,9 @@ class LaserTracker(object):
                     pass
                 print("Other color")
         # print("STOP")
-        # sleep(20)
-        cv2.add(self.trail, frame, frame)
-        self.previous_position = center
+        # sleep(1)
+        # cv2.add(self.trail, frame, frame)
+        # self.previous_position = center
 
     def detect(self, frame):
         hsv_img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
