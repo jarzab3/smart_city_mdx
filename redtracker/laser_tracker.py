@@ -9,8 +9,8 @@ import csv
 
 
 class LaserTracker(object):
-    def __init__(self, cam_width=640, cam_height=480, hue_min=20, hue_max=160,
-                 sat_min=100, sat_max=255, val_min=200, val_max=256,
+    def __init__(self, cam_width=640, cam_height=480, hue_min_G=20, hue_max_G=160,
+                 sat_min_G=100, sat_max_G=255, val_min_G=200, val_max_G=256,
                  display_thresholds=True, headless=False):
         """
         * ``cam_width`` x ``cam_height`` -- This should be the size of the
@@ -19,9 +19,9 @@ class LaserTracker(object):
         HSV color space Threshold values for a RED laser pointer are determined
         by:
 
-        * ``hue_min``, ``hue_max`` -- Min/Max allowed Hue values
-        * ``sat_min``, ``sat_max`` -- Min/Max allowed Saturation values
-        * ``val_min``, ``val_max`` -- Min/Max allowed pixel values
+        * ``hue_min_G``, ``hue_max_G`` -- Min/Max allowed Hue values
+        * ``sat_min_G``, ``sat_max_G`` -- Min/Max allowed Saturation values
+        * ``val_min_G``, ``val_max_G`` -- Min/Max allowed pixel values
 
         If the dot from the laser pointer doesn't fall within these values, it
         will be ignored.
@@ -33,13 +33,21 @@ class LaserTracker(object):
         """
         self.cam_width = cam_width
         self.cam_height = cam_height
-        # TODO add more of those
-        self.hue_min_g = hue_min
-        self.hue_max = hue_max
-        self.sat_min = sat_min
-        self.sat_max = sat_max
-        self.val_min = val_min
-        self.val_max = val_max
+        # TODO add more of those - done
+        #ranges for green
+        self.hue_min_G = hue_min_G
+        self.hue_max_G = hue_max_G
+        self.sat_min_G = sat_min_G
+        self.sat_max_G = sat_max_G
+        self.val_min_G = val_min_G
+        self.val_max_G = val_max_G
+        #ranges for red
+        self.hue_min_R = hue_min_R
+        self.hue_max_R = hue_max_R
+        self.sat_min_R = sat_min_R
+        self.sat_max_R = sat_max_R
+        self.val_min_R = val_min_R
+        self.val_max_R = val_max_R
         self.display_thresholds = display_thresholds
         self.capture = None  # camera capture device
         self.channels = {
@@ -81,16 +89,28 @@ class LaserTracker(object):
         :return: None
         """
         data = self.read_data()
-        # TODO choose which values to set from slider
-        if len(data) == 6:
-            self.hue_min = int(data[0])
-            self.hue_max = int(data[1])
-            self.sat_min = int(data[2])
-            self.sat_max = int(data[3])
-            self.val_min = int(data[4])
-            self.val_max = int(data[5])
-            # print("Data vals: {}".format(data))
-            # TODO extract it from array and update variables
+        # TODO choose which values to set from slider - done
+        if(data[6] == "green"):
+            if len(data) == 6:
+                self.hue_min_G = int(data[0])
+                self.hue_max_G = int(data[1])
+                self.sat_min_G = int(data[2])
+                self.sat_max_G = int(data[3])
+                self.val_min_G = int(data[4])
+                self.val_max_G = int(data[5])
+                # print("Data vals: {}".format(data))
+                # TODO extract it from array and update variables
+        elif(data[6] == "red"):
+            if len(data) == 6:
+                self.hue_min_R = int(data[0])
+                self.hue_max_R = int(data[1])
+                self.sat_min_R = int(data[2])
+                self.sat_max_R = int(data[3])
+                self.val_min_R = int(data[4])
+                self.val_max_R = int(data[5])
+                # print("Data vals: {}".format(data))
+                # TODO extract it from array and update variables
+
 
     def setup_camera_capture(self, device_num=0):
         """
@@ -134,14 +154,14 @@ class LaserTracker(object):
 
     def threshold_image(self, channel):
         if channel == "hue":
-            minimum = self.hue_min
-            maximum = self.hue_max
+            minimum = self.hue_min_G
+            maximum = self.hue_max_G
         elif channel == "saturation":
-            minimum = self.sat_min
-            maximum = self.sat_max
+            minimum = self.sat_min_G
+            maximum = self.sat_max_G
         elif channel == "value":
-            minimum = self.val_min
-            maximum = self.val_max
+            minimum = self.val_min_G
+            maximum = self.val_max_G
         (t, tmp) = cv2.threshold(
             self.channels[channel],  # src
             maximum,  # threshold value
@@ -160,7 +180,7 @@ class LaserTracker(object):
             self.channels['hue'] = cv2.bitwise_not(self.channels['hue'])
 
 
-    # TODO Add new track function
+    # TODO Add new track function - trackRED - done
 
     def track(self, frame, mask):
         """
@@ -200,11 +220,50 @@ class LaserTracker(object):
                 if not self.headless:
                     # Add gui if needed
                     pass
-                print("Other color")
+                print("No traffic light found")
         # print("STOP")
         # sleep(1)
         # cv2.add(self.trail, frame, frame)
         # self.previous_position = center
+        def trackRED(self, frame, mask):
+            """
+            Track the position of the laser pointer.
+            Code taken from
+            http://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
+            """
+            center = None
+            countours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+                                         cv2.CHAIN_APPROX_SIMPLE)[-2]
+            # only proceed if at least one contour was found
+            if len(countours) > 0:
+                # find the largest contour in the mask, then use
+                # it to compute the minimum enclosing circle and
+                # centroid
+                c = max(countours, key=cv2.contourArea)
+                ((x, y), radius) = cv2.minEnclosingCircle(c)
+                moments = cv2.moments(c)
+                if moments["m00"] > 0:
+                    center = int(moments["m10"] / moments["m00"]), \
+                             int(moments["m01"] / moments["m00"])
+                else:
+                    center = int(x), int(y)
+                # only proceed if the radius meets a minimum size
+                if radius > 2 and radius < 10:
+                    if not self.headless:
+                        # draw the circle and centroid on the frame,
+                        cv2.circle(frame, (int(x), int(y)), int(radius),
+                                   (0, 255, 255), 2)
+                        cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                    print("RED")
+                    # then update the ponter trail
+                #                if self.previous_position:
+                #                    cv2.line(self.trail, self.previous_position, center,
+                #                             (255, 255, 255), 2)
+                else:
+                    if not self.headless:
+                        # Add gui if needed
+                        pass
+                    print("No traffic light found ")
 
     def detect(self, frame):
         hsv_img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -335,12 +394,12 @@ if __name__ == '__main__':
     tracker = LaserTracker(
         cam_width=params.width,
         cam_height=params.height,
-        hue_min=params.huemin,
-        hue_max=params.huemax,
-        sat_min=params.satmin,
-        sat_max=params.satmax,
-        val_min=params.valmin,
-        val_max=params.valmax,
+        hue_min_G=params.huemin,
+        hue_max_G=params.huemax,
+        sat_min_G=params.satmin,
+        sat_max_G=params.satmax,
+        val_min_G=params.valmin,
+        val_max_G=params.valmax,
         display_thresholds=params.display,
         headless=False
     )
