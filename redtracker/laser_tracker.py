@@ -40,8 +40,8 @@ class LaserTracker(object):
         self.hue_max_R = hue_max
         self.sat_min_R = sat_min
         self.sat_max_R = sat_max
-        self.val_min_R = val_min_R
-        self.val_max_R = val_max_R
+        self.val_min_R = val_min
+        self.val_max_R = val_max
         self.display_thresholds = display_thresholds
         self.capture = None  # camera capture device
         self.channels = {
@@ -218,7 +218,12 @@ class LaserTracker(object):
                     cv2.circle(frame, (int(x), int(y)), int(radius),
                                (0, 255, 255), 2)
                     cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                print("color detected GREEN. Debug: {}".format(color_to_detect))
+                # print("color detected GREEN. Debug: {}".format(color_to_detect))
+                    if(color_to_detect == True):
+                        print ("GREEN")
+                    elif(color_to_detect == False):
+                        print ("RED")
+
                 # then update the ponter trail
 #                if self.previous_position:
 #                    cv2.line(self.trail, self.previous_position, center,
