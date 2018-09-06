@@ -27,6 +27,7 @@ class LaserTracker(object):
         """
         self.cam_width = cam_width
         self.cam_height = cam_height
+        self.display_more_windows = False
         # Ranges for green
         self.hue_min_G = hue_min
         self.hue_max_G = hue_max
@@ -74,7 +75,10 @@ class LaserTracker(object):
             reader = csv.reader(r, delimiter=',')
             for i, row in enumerate(reader):
                 row_from_file = row
-        return row_from_file
+        if len(row_from_file) == 6:
+            return row_from_file
+        else:
+            return None
 
     def update_vals(self):
         """
@@ -82,28 +86,23 @@ class LaserTracker(object):
         :return: None
         """
         data = self.read_data()
-        # TODO choose which values to set from slider - done
-        if(data[6] == "green"):
-            if len(data) == 6:
+        if data is not None:
+            if "green" in data[6]:
                 self.hue_min_G = int(data[0])
                 self.hue_max_G = int(data[1])
                 self.sat_min_G = int(data[2])
                 self.sat_max_G = int(data[3])
                 self.val_min_G = int(data[4])
                 self.val_max_G = int(data[5])
-                # print("Data vals: {}".format(data))
-                # TODO extract it from array and update variables
-        elif(data[6] == "red"):
-            if len(data) == 6:
+            elif "red" in data[6]:
                 self.hue_min_R = int(data[0])
                 self.hue_max_R = int(data[1])
                 self.sat_min_R = int(data[2])
                 self.sat_max_R = int(data[3])
                 self.val_min_R = int(data[4])
                 self.val_max_R = int(data[5])
-                # print("Data vals: {}".format(data))
-                # TODO extract it from array and update variables
-
+        else:
+            print("Not received correct data")
 
     def setup_camera_capture(self, device_num=0):
         """
@@ -117,13 +116,11 @@ class LaserTracker(object):
             # assume we want the 1st device
             device = 0
             sys.stderr.write("Invalid Device. Using default device 0\n")
-
         # Try to start capturing frames
         self.capture = cv2.VideoCapture(device)
         if not self.capture.isOpened():
             sys.stderr.write("Faled to Open Capture device. Quitting.\n")
             sys.exit(1)
-
         # set the wanted image size from the camera
         self.capture.set(
             cv2.cv.CV_CAP_PROP_FRAME_WIDTH if cv2.__version__.startswith('2') else cv2.CAP_PROP_FRAME_WIDTH,
@@ -145,20 +142,40 @@ class LaserTracker(object):
         if c in ['q', 'Q', chr(27)]:
             sys.exit(0)
 
-    def threshold_image(self, channel):
+    def threshold_image(self, channel, color_to_detect):
+        """
+        color_to_detect description
+        green = True
+        red = False
+        :param channel:
+        :param color_to_detect:
+        :return:
+        """
         if channel == "hue":
-            minimum = self.hue_min_G
-            maximum = self.hue_max_G
+            if color_to_detect:
+                minimum = self.hue_min_G
+                maximum = self.hue_max_G
+            else:
+                minimum = self.hue_min_R
+                maximum = self.hue_max_R
         elif channel == "saturation":
-            minimum = self.sat_min_G
-            maximum = self.sat_max_G
+            if color_to_detect:
+                minimum = self.sat_min_G
+                maximum = self.sat_max_G
+            else:
+                minimum = self.sat_min_R
+                maximum = self.sat_max_R
         elif channel == "value":
-            minimum = self.val_min_G
-            maximum = self.val_max_G
+            if color_to_detect:
+                minimum = self.val_min_G
+                maximum = self.val_max_G
+            else:
+                minimum = self.val_min_R
+                maximum = self.val_max_R
         (t, tmp) = cv2.threshold(
             self.channels[channel],  # src
             maximum,  # threshold value
-            0,  # we dont care because of the selected type
+            0,  # we don't care because of the selected type
             cv2.THRESH_TOZERO_INV  # t type
         )
         (t, self.channels[channel]) = cv2.threshold(
@@ -172,10 +189,7 @@ class LaserTracker(object):
             # is split
             self.channels['hue'] = cv2.bitwise_not(self.channels['hue'])
 
-
-    # TODO Add new track function - trackRED - done
-
-    def track(self, frame, mask):
+    def track(self, frame, mask, color_to_detect):
         """
         Track the position of the laser pointer.
         Code taken from
@@ -198,67 +212,28 @@ class LaserTracker(object):
             else:
                 center = int(x), int(y)
             # only proceed if the radius meets a minimum size
-            if radius > 2 and radius <10:
+            if 2 < radius < 10:
                 if not self.headless:
                     # draw the circle and centroid on the frame,
                     cv2.circle(frame, (int(x), int(y)), int(radius),
                                (0, 255, 255), 2)
                     cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                print("GREEN")
+                print("color detected GREEN. Debug: {}".format(color_to_detect))
                 # then update the ponter trail
 #                if self.previous_position:
 #                    cv2.line(self.trail, self.previous_position, center,
 #                             (255, 255, 255), 2)
-            else:
-                if not self.headless:
+#             else:
+#                 if not self.headless:
                     # Add gui if needed
-                    pass
-                print("No traffic light found")
+                    # pass
+                # print("No traffic light found")
         # print("STOP")
         # sleep(1)
         # cv2.add(self.trail, frame, frame)
         # self.previous_position = center
-        def trackRED(self, frame, mask):
-            """
-            Track the position of the laser pointer.
-            Code taken from
-            http://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
-            """
-            center = None
-            countours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                         cv2.CHAIN_APPROX_SIMPLE)[-2]
-            # only proceed if at least one contour was found
-            if len(countours) > 0:
-                # find the largest contour in the mask, then use
-                # it to compute the minimum enclosing circle and
-                # centroid
-                c = max(countours, key=cv2.contourArea)
-                ((x, y), radius) = cv2.minEnclosingCircle(c)
-                moments = cv2.moments(c)
-                if moments["m00"] > 0:
-                    center = int(moments["m10"] / moments["m00"]), \
-                             int(moments["m01"] / moments["m00"])
-                else:
-                    center = int(x), int(y)
-                # only proceed if the radius meets a minimum size
-                if radius > 2 and radius < 10:
-                    if not self.headless:
-                        # draw the circle and centroid on the frame,
-                        cv2.circle(frame, (int(x), int(y)), int(radius),
-                                   (0, 255, 255), 2)
-                        cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                    print("RED")
-                    # then update the ponter trail
-                #                if self.previous_position:
-                #                    cv2.line(self.trail, self.previous_position, center,
-                #                             (255, 255, 255), 2)
-                else:
-                    if not self.headless:
-                        # Add gui if needed
-                        pass
-                    print("No traffic light found ")
 
-    def detect(self, frame):
+    def detect(self, frame, color_to_detect):
         hsv_img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         # split the video frame into color channels
         h, s, v = cv2.split(hsv_img)
@@ -266,9 +241,9 @@ class LaserTracker(object):
         self.channels['saturation'] = s
         self.channels['value'] = v
         # Threshold ranges of HSV components; storing the results in place
-        self.threshold_image("hue")
-        self.threshold_image("saturation")
-        self.threshold_image("value")
+        self.threshold_image("hue", color_to_detect)
+        self.threshold_image("saturation", color_to_detect)
+        self.threshold_image("value", color_to_detect)
         # Perform an AND on HSV components to identify the laser!
         self.channels['laser'] = cv2.bitwise_and(
             self.channels['hue'],
@@ -284,8 +259,7 @@ class LaserTracker(object):
             self.channels['saturation'],
             self.channels['value'],
         ])
-        # TODO Add if
-        self.track(frame, self.channels['laser'])
+        self.track(frame, self.channels['laser'], color_to_detect)
         return hsv_image
 
     def display(self, img, frame):
@@ -294,11 +268,12 @@ class LaserTracker(object):
         """
         cv2.imshow('RGB_VideoFrame', frame)
         cv2.imshow('LaserPointer', self.channels['laser'])
-        # if self.display_thresholds:
-        #     cv2.imshow('Thresholded_HSV_Image', img)
-        #     cv2.imshow('Hue', self.channels['hue'])
-        #     cv2.imshow('Saturation', self.channels['saturation'])
-        #     cv2.imshow('Value', self.channels['value'])
+
+        if self.display_thresholds and self.display_more_windows:
+            cv2.imshow('Threshold_HSV_Image', img)
+            cv2.imshow('Hue', self.channels['hue'])
+            cv2.imshow('Saturation', self.channels['saturation'])
+            cv2.imshow('Value', self.channels['value'])
 
     def setup_windows(self):
         sys.stdout.write("Using OpenCV version: {0}\n".format(cv2.__version__))
@@ -306,13 +281,15 @@ class LaserTracker(object):
         self.create_and_position_window('LaserPointer', 0, 0)
         self.create_and_position_window('RGB_VideoFrame',
                                         10 + self.cam_width, 0)
-        # if self.display_thresholds:
-        #    self.create_and_position_window('Thresholded_HSV_Image', 10, 10)
-        #    self.create_and_position_window('Hue', 20, 20)
-        #    self.create_and_position_window('Saturation', 30, 30)
-        #    self.create_and_position_window('Value', 40, 40)
+        if self.display_thresholds and self.display_more_windows:
+            self.create_and_position_window('Threshold_HSV_Image', 10, 10)
+            self.create_and_position_window('Hue', 20, 20)
+            self.create_and_position_window('Saturation', 30, 30)
+            self.create_and_position_window('Value', 40, 40)
 
     def run(self, stream_frame=None):
+        green = True
+        red = False
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
         if stream_frame is None:
             self.setup_camera_capture()
@@ -328,15 +305,19 @@ class LaserTracker(object):
                     sys.exit(1)
                 # Update values from a file
                 self.update_vals()
-                hsv_image = self.detect(frame)
-                self.display(hsv_image, frame)
+                hsv_image_g = self.detect(frame, green)
+                hsv_image_r = self.detect(frame, red)
+                self.display(hsv_image_g, frame)
+                self.display(hsv_image_r, frame)
                 self.handle_quit()
         else:
             # Update values from a file
             self.update_vals()
-            hsv_image = self.detect(stream_frame)
+            hsv_image_g = self.detect(stream_frame, green)
+            hsv_image_r = self.detect(stream_frame, red)
             if not self.headless:
-                self.display(hsv_image, stream_frame)
+                self.display(hsv_image_g, stream_frame)
+                self.display(hsv_image_r, stream_frame)
                 self.handle_quit()
             self.handle_quit()
 
