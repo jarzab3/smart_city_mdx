@@ -368,12 +368,12 @@ if __name__ == '__main__':
     tracker = LaserTracker(
         cam_width=params.width,
         cam_height=params.height,
-        hue_min_G=params.huemin,
-        hue_max_G=params.huemax,
-        sat_min_G=params.satmin,
-        sat_max_G=params.satmax,
-        val_min_G=params.valmin,
-        val_max_G=params.valmax,
+        hue_min=params.huemin,
+        hue_max=params.huemax,
+        sat_min=params.satmin,
+        sat_max=params.satmax,
+        val_min=params.valmin,
+        val_max=params.valmax,
         display_thresholds=params.display,
         headless=False
     )

@@ -2,6 +2,7 @@ import io
 import picamera
 import logging
 import socketserver
+import socket
 from threading import Condition
 from http import server
 
@@ -16,6 +17,7 @@ PAGE="""\
 </body>
 </html>
 """
+
 
 class StreamingOutput(object):
     def __init__(self):
@@ -33,6 +35,7 @@ class StreamingOutput(object):
                 self.condition.notify_all()
             self.buffer.seek(0)
         return self.buffer.write(buf)
+
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -73,16 +76,34 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_error(404)
             self.end_headers()
 
+
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
-    output = StreamingOutput()
-    camera.start_recording(output, format='mjpeg')
+
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        address = ('', 4000)
-        server = StreamingServer(address, StreamingHandler)
-        server.serve_forever()
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
     finally:
-        camera.stop_recording()
+        s.close()
+    return IP
+
+
+if __name__ == '__main__':
+    port = 4000
+    print("Start streaming from ip: {} port: {}".format(get_ip(), port))
+    with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
+        output = StreamingOutput()
+        camera.start_recording(output, format='mjpeg')
+        try:
+            address = ('', port)
+            server = StreamingServer(address, StreamingHandler)
+            server.serve_forever()
+        finally:
+            camera.stop_recording()
