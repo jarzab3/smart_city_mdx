@@ -9,43 +9,36 @@ import csv
 
 
 class LaserTracker(object):
-    def __init__(self, cam_width=640, cam_height=480, hue_min_G=20, hue_max_G=160,
-                 sat_min_G=100, sat_max_G=255, val_min_G=200, val_max_G=256,
+    def __init__(self, cam_width=640, cam_height=480, hue_min=20, hue_max=160,
+                 sat_min=100, sat_max=255, val_min=200, val_max=256,
                  display_thresholds=True, headless=False):
         """
         * ``cam_width`` x ``cam_height`` -- This should be the size of the
         image coming from the camera. Default is 640x480.
-
         HSV color space Threshold values for a RED laser pointer are determined
         by:
-
         * ``hue_min_G``, ``hue_max_G`` -- Min/Max allowed Hue values
         * ``sat_min_G``, ``sat_max_G`` -- Min/Max allowed Saturation values
         * ``val_min_G``, ``val_max_G`` -- Min/Max allowed pixel values
-
         If the dot from the laser pointer doesn't fall within these values, it
         will be ignored.
-
         * ``display_thresholds`` -- if True, additional windows will display
           values for threshold image channels.
-
-
         """
         self.cam_width = cam_width
         self.cam_height = cam_height
-        # TODO add more of those - done
-        #ranges for green
-        self.hue_min_G = hue_min_G
-        self.hue_max_G = hue_max_G
-        self.sat_min_G = sat_min_G
-        self.sat_max_G = sat_max_G
-        self.val_min_G = val_min_G
-        self.val_max_G = val_max_G
-        #ranges for red
-        self.hue_min_R = hue_min_R
-        self.hue_max_R = hue_max_R
-        self.sat_min_R = sat_min_R
-        self.sat_max_R = sat_max_R
+        # Ranges for green
+        self.hue_min_G = hue_min
+        self.hue_max_G = hue_max
+        self.sat_min_G = sat_min
+        self.sat_max_G = sat_max
+        self.val_min_G = val_min
+        self.val_max_G = val_max
+        # Ranges for red
+        self.hue_min_R = hue_min
+        self.hue_max_R = hue_max
+        self.sat_min_R = sat_min
+        self.sat_max_R = sat_max
         self.val_min_R = val_min_R
         self.val_max_R = val_max_R
         self.display_thresholds = display_thresholds
