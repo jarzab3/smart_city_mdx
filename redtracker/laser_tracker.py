@@ -70,15 +70,21 @@ class LaserTracker(object):
         Reads from a file and returns a data in the array type.
         :return:
         """
-        row_from_file = []
+        row_from_file = {"red": [], "green": []}
+        temp_row = []
         with open(self.file_name, 'r', os.O_NONBLOCK) as r:
             reader = csv.reader(r, delimiter=',')
             for i, row in enumerate(reader):
-                row_from_file = row
-        if len(row_from_file) == 6:
-            return row_from_file
-        else:
+                temp_row = row
+        #         TODO: stop the program if assert fails
+        assert len(temp_row) == 13, "Incorrect format of the file, pleas run the sliders to adjust values"
+        if len(temp_row) != 13:
             return None
+        else:
+            row_from_file['red'] = temp_row[:6]
+            row_from_file['green'] = temp_row[7:]
+        return row_from_file
+
 
     def update_vals(self):
         """
@@ -86,23 +92,23 @@ class LaserTracker(object):
         :return: None
         """
         data = self.read_data()
+        green_data = data.get('green')
+        red_data = data.get('red')
         if data is not None:
-            if "green" in data[6]:
-                self.hue_min_G = int(data[0])
-                self.hue_max_G = int(data[1])
-                self.sat_min_G = int(data[2])
-                self.sat_max_G = int(data[3])
-                self.val_min_G = int(data[4])
-                self.val_max_G = int(data[5])
-            elif "red" in data[6]:
-                self.hue_min_R = int(data[0])
-                self.hue_max_R = int(data[1])
-                self.sat_min_R = int(data[2])
-                self.sat_max_R = int(data[3])
-                self.val_min_R = int(data[4])
-                self.val_max_R = int(data[5])
+            self.hue_min_G = int(green_data[0])
+            self.hue_max_G = int(green_data[1])
+            self.sat_min_G = int(green_data[2])
+            self.sat_max_G = int(green_data[3])
+            self.val_min_G = int(green_data[4])
+            self.val_max_G = int(green_data[5])
+            self.hue_min_R = int(red_data[0])
+            self.hue_max_R = int(red_data[1])
+            self.sat_min_R = int(red_data[2])
+            self.sat_max_R = int(red_data[3])
+            self.val_min_R = int(red_data[4])
+            self.val_max_R = int(red_data[5])
         else:
-            print("Not received correct data")
+            print("Not received correct data.")
 
     def setup_camera_capture(self, device_num=0):
         """
@@ -195,6 +201,7 @@ class LaserTracker(object):
         Code taken from
         http://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
         """
+        result = False
         center = None
         countours = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)[-2]
@@ -213,30 +220,19 @@ class LaserTracker(object):
                 center = int(x), int(y)
             # only proceed if the radius meets a minimum size
             if 2 < radius < 10:
+                # print(color_to_detect)
                 if not self.headless:
                     # draw the circle and centroid on the frame,
                     cv2.circle(frame, (int(x), int(y)), int(radius),
                                (0, 255, 255), 2)
                     cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                # print("color detected GREEN. Debug: {}".format(color_to_detect))
-                    if(color_to_detect == True):
-                        print ("GREEN")
-                    elif(color_to_detect == False):
-                        print ("RED")
+                    # print("color detected GREEN. Debug: {}".format(color_to_detect))
+                if color_to_detect:
+                    result =  "green"
+                elif not color_to_detect:
+                    result = "red"
 
-                # then update the ponter trail
-#                if self.previous_position:
-#                    cv2.line(self.trail, self.previous_position, center,
-#                             (255, 255, 255), 2)
-#             else:
-#                 if not self.headless:
-                    # Add gui if needed
-                    # pass
-                # print("No traffic light found")
-        # print("STOP")
-        # sleep(1)
-        # cv2.add(self.trail, frame, frame)
-        # self.previous_position = center
+        return result
 
     def detect(self, frame, color_to_detect):
         hsv_img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -264,8 +260,8 @@ class LaserTracker(object):
             self.channels['saturation'],
             self.channels['value'],
         ])
-        self.track(frame, self.channels['laser'], color_to_detect)
-        return hsv_image
+        result = self.track(frame, self.channels['laser'], color_to_detect)
+        return hsv_image, result
 
     def display(self, img, frame):
         """Display the combined image and (optionally) all other image channels
@@ -293,7 +289,7 @@ class LaserTracker(object):
             self.create_and_position_window('Value', 40, 40)
 
     def run(self, stream_frame=None):
-        green = True
+        green = False
         red = False
         # 2. If image (stream_frame) is provided to this function, then, do not capture it but just process.
         if stream_frame is None:
@@ -308,22 +304,37 @@ class LaserTracker(object):
                 if not success:  # no image captured... end the processing
                     sys.stderr.write("Could not read camera frame. Quitting\n")
                     sys.exit(1)
+                result = False
                 # Update values from a file
                 self.update_vals()
-                hsv_image_g = self.detect(frame, green)
-                hsv_image_r = self.detect(frame, red)
-                self.display(hsv_image_g, frame)
-                self.display(hsv_image_r, frame)
-                self.handle_quit()
+                hsv_image_g, result = self.detect(stream_frame, green)
+                if result == "green":
+                    print("Green color")
+                elif not result:
+                    hsv_image_r, result = self.detect(stream_frame, red)
+                    if result == "red":
+                        print("Red color")
+
+                    if not self.headless:
+                        self.display(hsv_image_g, stream_frame)
+                        self.display(hsv_image_r, stream_frame)
+                        self.handle_quit()
         else:
+            result = False
             # Update values from a file
             self.update_vals()
-            hsv_image_g = self.detect(stream_frame, green)
-            hsv_image_r = self.detect(stream_frame, red)
-            if not self.headless:
-                self.display(hsv_image_g, stream_frame)
-                self.display(hsv_image_r, stream_frame)
-                self.handle_quit()
+            hsv_image_g, result = self.detect(stream_frame, green)
+            if result == "green":
+                print("Green color")
+            elif not result:
+                hsv_image_r, result = self.detect(stream_frame, red)
+                if result == "red":
+                    print("Red color")
+
+                if not self.headless:
+                    self.display(hsv_image_g, stream_frame)
+                    self.display(hsv_image_r, stream_frame)
+                    self.handle_quit()
             self.handle_quit()
 
 
