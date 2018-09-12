@@ -77,7 +77,7 @@ class LaserTracker(object):
             for i, row in enumerate(reader):
                 temp_row = row
         #         TODO: stop the program if assert fails
-        assert len(temp_row) == 13, "Incorrect format of the file, pleas run the sliders to adjust values"
+        assert len(temp_row) != 13, "Incorrect format of the file, pleas run the sliders to adjust values"
         if len(temp_row) != 13:
             return None
         else:
